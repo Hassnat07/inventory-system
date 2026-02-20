@@ -1,0 +1,23 @@
+{
+  "include": [
+    "**/*.py"
+  ],
+  "exclude": [
+    "**/__pycache__",
+    "**/node_modules"
+  ],
+  "extraPaths": [
+    ".",
+    "${workspaceFolder}"
+  ],
+  "pythonVersion": "3.8",
+  "typeCheckingMode": "basic",
+  "reportMissingImports": false,
+  "reportMissingTypeStubs": false,
+  "executionEnvironments": [
+    {
+      "root": "."
+    }
+  ]
+}
+
