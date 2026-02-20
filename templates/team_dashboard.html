@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Team Portal</title>
+</head>
+<body>
+
+<h2>Welcome, {{ username }}</h2>
+
+<h3>Available Inventory</h3>
+<table border="1" cellpadding="8">
+<tr>
+    <th>Lens</th>
+    <th>Power</th>
+    <th>Available</th>
+</tr>
+{% for s in stock %}
+<tr>
+    <td>{{ s[0] }}</td>
+    <td>{{ s[1] }}</td>
+    <td>{{ s[2] }} units</td>
+</tr>
+{% endfor %}
+</table>
+
+<hr>
+
+<h3>My Delivery History</h3>
+<table border="1" cellpadding="8">
+<tr>
+    <th>Lens</th>
+    <th>Power</th>
+    <th>Qty</th>
+    <th>Date</th>
+</tr>
+{% for d in my_deliveries %}
+<tr>
+    <td>{{ d[0] }}</td>
+    <td>{{ d[1] }}</td>
+    <td>{{ d[2] }}</td>
+    <td>{{ d[3] }}</td>
+</tr>
+{% endfor %}
+</table>
+
+</body>
+</html>

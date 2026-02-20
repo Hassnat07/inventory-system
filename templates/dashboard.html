@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Invoice Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+<!-- ================= TOP BAR ================= -->
+<div class="top-bar">
+    Invoice No:
+    <input type="number" id="invoice_no" value="{{ invoice_no }}" class="small-input">
+
+
+    Date:
+    <input type="text" id="date" value="{{ today }}" class="small-input">
+</div>
+
+<!-- ================= CUSTOMER ================= -->
+<div class="section">
+    <div class="section-title">Customer</div>
+
+    <select id="customer" class="wide-select">
+        {% for c in customers %}
+        <option value="{{ c[0] }}">
+            {{ c[1][:30] }}{% if c[1]|length > 30 %}…{% endif %}
+        </option>
+          
+        {% endfor %}
+    </select>
+
+    <div class="inline-dialog">
+        <button type="button" onclick="toggleCustomerForm()">Add Customer</button>
+    
+        <div id="customer-form" class="dialog-box">
+            <h4>Add Customer</h4>
+    
+            <label>Name</label>
+            <input type="text" id="cust-name">
+    
+            <label>Address</label>
+            <input type="text" id="cust-address">
+    
+            <div class="dialog-actions">
+                <button onclick="saveCustomer()">Save</button>
+                <button class="danger" onclick="toggleCustomerForm()">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <button type="button" class="danger" onclick="deleteCustomer()">Delete Customer</button>
+</div>
+
+<!-- ================= PRODUCTS ================= -->
+<!-- ================= PRODUCTS ================= -->
+<div class="section">
+    <div class="section-title">Products / Items</div>
+
+    <select id="product" class="product-select">
+        <option value="">-- Select Product --</option>
+        {% for p in products %}
+            <option value="{{ p[1] }}|{{ p[2] }}">
+                {{ p[1] }} - {{ '%.2f'|format(p[2]) }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <!-- ✅ SINGLE INPUT BLOCK (NO DUPLICATION) -->
+    <div class="item-row">
+        <div class="row-1">
+            <input type="text" id="desc" placeholder="Description">
+            <input type="text" id="power" placeholder="Power">
+        </div>
+
+        <div class="row-2">
+            <input type="number" id="qty" placeholder="Qty">
+            <input type="number" id="price" placeholder="Price">
+        </div>
+    </div>
+
+    <div class="inline-dialog">
+        <button type="button" onclick="toggleProductForm()">Add Product</button>
+
+        <div id="product-form" class="dialog-box">
+            <h4>Add Product</h4>
+
+            <label>Product Name</label>
+            <input type="text" id="prod-name">
+
+            <label>Price</label>
+            <input type="number" id="prod-price">
+
+            <div class="dialog-actions">
+                <button onclick="saveProduct()">Save</button>
+                <button class="danger" onclick="toggleProductForm()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="center">
+        <button type="button" onclick="addItem()">Add Item to Invoice</button>
+    </div>
+</div>
+
+
+<!-- ================= TABLE ================= -->
+<table class="invoice-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Description</th>
+            <th>Power</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>Amount</th>
+        </tr>
+    </thead>
+    <tbody id="items-body">
+    </tbody>
+</table>
+
+<!-- ================= FOOTER ================= -->
+<div class="footer">
+    <div class="footer-left">
+        <button type="button" onclick="removeSelected()">Remove Selected Item</button>
+        <button type="button" onclick="clearItems()">Clear Items</button>
+
+        <br><br>
+
+        <label>
+            <input type="checkbox" id="letterhead" checked>
+            Print on Letterhead
+        </label>
+
+        <label>
+            <input type="checkbox" id="ntn" checked>
+            Print NTN No
+        </label>
+
+        Total:
+        <input type="text" id="total" value="0.00" class="small-input" readonly>
+    </div>
+
+    <div class="footer-right">
+        <button type="button" class="primary" onclick="submitInvoice()">
+            Save & Generate PDF
+        </button>
+    </div>
+</div>
+
+<!-- ================= ADD CUSTOMER FORM ================= -->
+
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+
+
+</body>
+</html>
