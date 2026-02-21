@@ -5,6 +5,8 @@ from generate_pdf import generate_pdf
 from flask import Flask, render_template, request, send_file, redirect, url_for, session, g
 from auth_routes import auth_bp
 from inventory_routes import inventory_bp
+import os
+
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key'  # Added for session security
@@ -120,4 +122,5 @@ def invoice():
     return render_template("invoice.html")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
