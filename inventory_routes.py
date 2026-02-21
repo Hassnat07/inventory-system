@@ -1,7 +1,8 @@
 # inventory_routes.py
 from flask import Blueprint, request, jsonify, render_template, redirect, g, url_for, flash
-import sqlite3
-from inventory_db import get_db
+import psycopg2
+from psycopg2 import sql
+from inventory_db import get_db   # assuming this now returns psycopg2 connection
 
 inventory_bp = Blueprint("inventory", __name__, url_prefix="/inventory")
 
@@ -19,13 +20,13 @@ def add_lens():
     con = get_db()
     cur = con.cursor()
 
-    cur.execute("SELECT id FROM lenses WHERE name = ?", (name,))
+    cur.execute("SELECT id FROM lenses WHERE name = %s", (name,))
     if cur.fetchone():
         flash("Lens already exists", "danger")
         con.close()
         return redirect("/inventory")
 
-    cur.execute("INSERT INTO lenses (name) VALUES (?)", (name,))
+    cur.execute("INSERT INTO lenses (name) VALUES (%s)", (name,))
     con.commit()
     con.close()
 
@@ -39,7 +40,6 @@ def add_doctor():
         return redirect(url_for("auth.login"))
 
     name = request.form.get("name", "").strip()
-
     if not name:
         flash("Doctor name is required", "danger")
         return redirect("/inventory")
@@ -47,16 +47,14 @@ def add_doctor():
     con = get_db()
     cur = con.cursor()
 
-    cur.execute("SELECT id FROM doctors WHERE name = ?", (name,))
-    existing = cur.fetchone()
-
-    if existing:
+    cur.execute("SELECT id FROM doctors WHERE name = %s", (name,))
+    if cur.fetchone():
         flash("Doctor already exists!", "danger")
         con.close()
         return redirect("/inventory")
 
     try:
-        cur.execute("INSERT INTO doctors (name) VALUES (?)", (name,))
+        cur.execute("INSERT INTO doctors (name) VALUES (%s)", (name,))
         con.commit()
         flash("Doctor added successfully!", "success")
     except Exception as e:
@@ -66,7 +64,6 @@ def add_doctor():
         con.close()
 
     return redirect("/inventory")
-
 
 
 @inventory_bp.route("/")
@@ -81,7 +78,7 @@ def inventory_page():
     selected_power = request.args.get("power")
 
     cur.execute("SELECT id, name FROM lenses ORDER BY name")
-    lenses = cur.fetchall()
+    lenses = cur.fetchall()           # list of tuples: (id, name)
 
     cur.execute("SELECT id, name FROM doctors ORDER BY name")
     doctors = cur.fetchall()
@@ -96,21 +93,23 @@ def inventory_page():
     params = []
 
     if selected_lens:
-        conditions.append("l.id = ?")
+        conditions.append("l.id = %s")
         params.append(selected_lens)
     if selected_power:
-        conditions.append("s.power = ?")
+        conditions.append("s.power = %s")
         params.append(selected_power)
 
     if conditions:
         query += " WHERE " + " AND ".join(conditions)
 
-    query += " ORDER BY l.name, s.power COLLATE NOCASE"
+    # Note: PostgreSQL string sort is case-sensitive by default
+    # If you really want case-insensitive → add COLLATE "C" or use LOWER()
+    query += " ORDER BY l.name, s.power"
 
     cur.execute(query, params)
-    stock = cur.fetchall()
+    stock = cur.fetchall()            # list of tuples
 
-    # Recent transactions — explicit column order to match template
+    # Recent transactions (last 50)
     recent_query = """
     SELECT
         lens_name,
@@ -151,7 +150,7 @@ def inventory_page():
     recent = cur.fetchall()
 
     # Staff Delivery Activity — only team members
-    cur.execute("""
+    staff_query = """
         SELECT 
             username,
             lens_name,
@@ -193,24 +192,18 @@ def inventory_page():
             WHERE u.role = 'team'
         )
         ORDER BY created_at DESC
-    """)
+    """
+    cur.execute(staff_query)
     employee_log = cur.fetchall()
 
+    # You can keep debug prints, but row is now always tuple
     print("STAFF DATA:", employee_log)
-
-    # Debug print — keep this for now; remove later when stable
     print("\n=== DEBUG: Recent transactions ===")
     if recent:
         first = recent[0]
-        print("Row type:", type(first).__name__)
-        print("Has keys attribute:", hasattr(first, 'keys'))
-        if hasattr(first, 'keys'):
-            print("Keys:", list(first.keys()))
-            print("Sample row dict:", dict(first))
-            print("Quantity value:", first["quantity"])
-        else:
-            print("Row as tuple:", tuple(first))
-            print("Quantity (position 3):", first[3])
+        print("Row type: tuple")
+        print("Sample row:", first)
+        print("Quantity (index 3):", first[3])
     else:
         print("No recent rows")
     print("===================================\n")
@@ -252,14 +245,14 @@ def stock_in():
         if transaction_type == "IN":
             cur.execute("""
                 INSERT INTO stock_in (lens_id, power, quantity, added_by)
-                VALUES (?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s)
             """, (lens_id, power, quantity, g.user["id"]))
 
             cur.execute("""
                 INSERT INTO inventory_stock (lens_id, power, quantity_available)
-                VALUES (?, ?, ?)
-                ON CONFLICT(lens_id, power)
-                DO UPDATE SET quantity_available = quantity_available + excluded.quantity_available
+                VALUES (%s, %s, %s)
+                ON CONFLICT (lens_id, power)
+                DO UPDATE SET quantity_available = inventory_stock.quantity_available + EXCLUDED.quantity_available
             """, (lens_id, power, quantity))
 
         elif transaction_type == "OUT":
@@ -268,25 +261,26 @@ def stock_in():
                 flash("Doctor is required for stock OUT", "danger")
                 return redirect("/inventory")
 
-            # Safety check: enough stock?
+            # Safety check
             cur.execute("""
-                SELECT quantity_available FROM inventory_stock 
-                WHERE lens_id = ? AND power = ?
+                SELECT quantity_available 
+                FROM inventory_stock 
+                WHERE lens_id = %s AND power = %s
             """, (lens_id, power))
             current = cur.fetchone()
-            if not current or current["quantity_available"] < quantity:
+            if not current or current[0] < quantity:
                 flash("Not enough stock available", "danger")
                 return redirect("/inventory")
 
             cur.execute("""
                 INSERT INTO stock_out (lens_id, power, quantity, user_id, doctor_id, delivery_date)
-                VALUES (?, ?, ?, ?, ?, DATE('now'))
+                VALUES (%s, %s, %s, %s, %s, CURRENT_DATE)
             """, (lens_id, power, quantity, g.user["id"], doctor_id))
 
             cur.execute("""
                 UPDATE inventory_stock
-                SET quantity_available = quantity_available - ?
-                WHERE lens_id = ? AND power = ?
+                SET quantity_available = quantity_available - %s
+                WHERE lens_id = %s AND power = %s
             """, (quantity, lens_id, power))
 
         else:
@@ -320,11 +314,11 @@ def view_stock():
 
         return jsonify([
             {
-                "lens": r["name"],
-                "brand": r["brand"] or "N/A",
-                "power": r["power"],
-                "quantity": r["quantity_available"],
-                "reorder": r["reorder_level"]
+                "lens": r[0],
+                "brand": r[1] or "N/A",
+                "power": r[2],
+                "quantity": r[3],
+                "reorder": r[4]
             } for r in rows
         ])
     finally:
