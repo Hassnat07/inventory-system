@@ -1,9 +1,14 @@
-import sqlite3
-
-DB_FILE = "invoices.db"
+import os
+import psycopg2
 
 def get_db():
-    return sqlite3.connect(DB_FILE)
+    return psycopg2.connect(os.getenv("DATABASE_URL"))
+
+# ────────────────────────────────────────────────
+# Connection settings – CHANGE THESE to match your PostgreSQL setup
+# ────────────────────────────────────────────────
+
+
 
 
 # ================= AUTH TABLES =================
@@ -13,25 +18,27 @@ def init_auth_tables():
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id BIGSERIAL PRIMARY KEY,
         username TEXT UNIQUE,
         password TEXT,
         role TEXT
-    )
+    );
     """)
 
-    # Default admin
+    # Default admin (using ON CONFLICT DO NOTHING)
     cur.execute("""
-        INSERT OR IGNORE INTO users (username, password, role)
+        INSERT INTO users (username, password, role)
         VALUES ('admin', 'admin123', 'admin')
+        ON CONFLICT (username) DO NOTHING;
     """)
 
-    # Default team user
+    # Default team users
     cur.execute("""
-        INSERT OR IGNORE INTO users (username, password, role)
+        INSERT INTO users (username, password, role)
         VALUES 
-        ('asad', 'asad123', 'team'),
-        ('faisal', 'faisal123', 'team')
+            ('asad',   'asad123',   'team'),
+            ('faisal', 'faisal123', 'team')
+        ON CONFLICT (username) DO NOTHING;
     """)
 
     con.commit()
@@ -44,7 +51,11 @@ def validate_user(username, password):
     cur = con.cursor()
 
     cur.execute(
-        "SELECT id, username, role FROM users WHERE username=? AND password=?",
+        """
+        SELECT id, username, role 
+        FROM users 
+        WHERE username = %s AND password = %s
+        """,
         (username, password)
     )
 
@@ -59,30 +70,30 @@ def validate_user(username, password):
         }
 
     return None
+
+
 # ================= INVENTORY TABLES =================
 def init_inventory_tables():
-    # Delegate detailed inventory schema to inventory_db which contains the
-    # full lenses schema (power_range, brand, category). Then ensure the
-    # additional transactional tables exist.
+    # If you have a separate inventory_db module → call it
     try:
         from inventory_db import init_inventory_tables as _init_inv
-    except Exception:
-        # fallback: create minimal tables here
+    except (ImportError, ModuleNotFoundError):
+        # fallback: create minimal doctors & lenses tables
         con = get_db()
         cur = con.cursor()
 
         cur.execute("""
         CREATE TABLE IF NOT EXISTS doctors (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id BIGSERIAL PRIMARY KEY,
             name TEXT UNIQUE NOT NULL
-        )
+        );
         """)
 
         cur.execute("""
         CREATE TABLE IF NOT EXISTS lenses (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id BIGSERIAL PRIMARY KEY,
             name TEXT UNIQUE NOT NULL
-        )
+        );
         """)
 
         con.commit()
@@ -90,36 +101,38 @@ def init_inventory_tables():
     else:
         _init_inv()
 
-    # Ensure transactional tables exist (non-destructive if already present)
+    # ────────────────────────────────────────────────
+    # Ensure transactional tables exist
+    # ────────────────────────────────────────────────
     con = get_db()
     cur = con.cursor()
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS stock_transactions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        lens_id INTEGER NOT NULL,
-        doctor_id INTEGER,
+        id BIGSERIAL PRIMARY KEY,
+        lens_id BIGINT NOT NULL,
+        doctor_id BIGINT,
         power TEXT NOT NULL,
         quantity INTEGER NOT NULL,
         type TEXT CHECK(type IN ('IN','OUT')) NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (lens_id) REFERENCES lenses(id),
-        FOREIGN KEY (doctor_id) REFERENCES doctors(id)
-    )
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_lens FOREIGN KEY (lens_id) REFERENCES lenses(id),
+        CONSTRAINT fk_doctor FOREIGN KEY (doctor_id) REFERENCES doctors(id)
+    );
     """)
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS employee_deliveries (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id BIGSERIAL PRIMARY KEY,
         employee TEXT NOT NULL,
-        lens_id INTEGER NOT NULL,
-        doctor_id INTEGER,
+        lens_id BIGINT NOT NULL,
+        doctor_id BIGINT,
         power TEXT NOT NULL,
         quantity INTEGER NOT NULL,
-        delivered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (lens_id) REFERENCES lenses(id),
-        FOREIGN KEY (doctor_id) REFERENCES doctors(id)
-    )
+        delivered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_lens FOREIGN KEY (lens_id) REFERENCES lenses(id),
+        CONSTRAINT fk_doctor FOREIGN KEY (doctor_id) REFERENCES doctors(id)
+    );
     """)
 
     con.commit()
