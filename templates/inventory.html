@@ -217,7 +217,7 @@
     {% if user and user.role == 'admin' %}
     <section>
         <h2>Register New Lens</h2>
-        <form class="form-grid" method="POST" action="/inventory/add-lens">
+        <form class="form-grid" method="POST" action="/portal/inventory/add-lens">
             <input type="text" name="name" placeholder="Enter Lens Name (e.g. Rohoto)" required>
             <button type="submit">Add to Database</button>
         </form>
@@ -225,7 +225,7 @@
 
     <section>
         <h2>Add Doctor / Hospital</h2>
-        <form class="form-grid" method="POST" action="/inventory/add-doctor">
+        <form class="form-grid" method="POST" action="/portal/inventory/add-doctor">
             <input type="text" name="name" placeholder="Enter Doctor Name" required>
             <button type="submit">Add Doctor</button>
         </form>
@@ -239,7 +239,7 @@
     {% if user and user.role in ['admin', 'team'] %}
     <section>
         <h2>Stock Entry & Movement</h2>
-        <form class="form-grid" method="post" action="/inventory/stock-in">
+        <form class="form-grid" method="post" action="/portal/inventory/stock-in">
 
             <select name="doctor_id">
                 <option value="">Select Doctor (Optional)</option>
@@ -276,7 +276,7 @@
     <section id="inventory-levels">
         <h2>Current Inventory Levels</h2>
 
-        <form class="filter-row" method="GET" action="/inventory#inventory-levels">
+        <form class="filter-row" method="GET" action="/portal/inventory#inventory-levels">
             <select name="lens_id">
                 <option value="">All Lenses</option>
                 {% for l in lenses %}
@@ -327,7 +327,7 @@
     <section id="recent-section">
         <h2>Recent Transactions</h2>
 
-        <form class="filter-row" method="GET" action="/inventory#recent-section">
+        <form class="filter-row" method="GET" action="/portal/inventory#recent-section">
             <select name="rt_lens_id">
                 <option value="">All Brands</option>
                 {% for l in lenses %}
@@ -410,7 +410,7 @@
     <section id="staff-delivery">
         <h2>Staff Delivery Activity</h2>
 
-        <form class="filter-row" method="GET" action="/inventory#staff-delivery">
+        <form class="filter-row" method="GET" action="/portal/inventory#staff-delivery">
             <select name="emp">
                 <option value="">All Staff</option>
                 {% for e in employee_log | map(attribute=0) | unique %}
