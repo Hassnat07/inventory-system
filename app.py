@@ -13,8 +13,8 @@ app.secret_key = 'your-secret-key'  # Added for session security
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.jinja_env.auto_reload = True
 
-app.register_blueprint(auth_bp)
-app.register_blueprint(inventory_bp)
+app.register_blueprint(auth_bp, url_prefix="/portal")
+app.register_blueprint(inventory_bp, url_prefix="/portal")
 
 # Initialize database tables
 from database import init_auth_tables
@@ -23,22 +23,18 @@ from inventory_db import init_db
 init_auth_tables()
 init_db()
 
-
 @app.route("/")
-def dashboard():
-    user = g.get("user")
-    if not user:
-        return redirect(url_for("auth.login"))
-    return render_template("dashboard.html")
+def home():
+    return render_template("home.html")
 
-@app.route("/admin")
+@app.route("/portal/admin")
 def admin_dashboard():
     user = g.get("user")
     if not user or user.get("role") != "admin":
         return redirect(url_for("auth.login"))
     return render_template("admin_dashboard.html")
 
-@app.route("/team")
+@app.route("/portal/team")
 def team_dashboard():
     user = g.get("user")
     if not user or user.get("role") != "team":
