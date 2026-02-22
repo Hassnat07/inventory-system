@@ -1,475 +1,311 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ramay Electromedics | Precision Ophthalmic Tech</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ramay Electromedics | Precision Ophthalmic Tech</title>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
-  <style>
-    :root {
-      --neon-blue: #00bfff;
-      --deep-bg: #030b10;
-      --glass: rgba(255, 255, 255, 0.04);
-      --border: rgba(0, 191, 255, 0.25);
-    }
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+<style>
+:root {
+    --neon-blue: #00bfff;
+    --deep-bg: #030b10;
+    --glass: rgba(255, 255, 255, 0.03);
+    --border: rgba(0, 191, 255, 0.3);
+}
 
-    body {
-      background: var(--deep-bg);
-      color: white;
-      font-family: 'Inter', sans-serif;
-      line-height: 1.5;
-      overflow-x: hidden;
-    }
+body {
+    margin: 0;
+    background: var(--deep-bg);
+    color: white;
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+}
 
-    canvas { position: fixed; inset: 0; z-index: -1; }
+canvas { position: fixed; top: 0; left: 0; z-index: -1; }
 
-    /* ── Navigation ─────────────────────────────────────────────── */
-    nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 1000;
-      padding: 1rem 5%;
-      background: rgba(3, 11, 16, 0.9);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+/* Navigation Spice */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 8%;
+    position: fixed;
+    width: 100%;
+    background: rgba(3, 11, 16, 0.8);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    z-index: 100;
+    box-sizing: border-box;
+}
 
-    .logo {
-      font-family: 'Orbitron';
-      font-size: 1.2rem;
-      font-weight: 900;
-      color: var(--neon-blue);
-      letter-spacing: 2px;
-      text-shadow: 0 0 15px rgba(0, 191, 255, 0.6);
-    }
+.logo {
+    font-family: 'Orbitron';
+    color: var(--neon-blue);
+    font-weight: 900;
+    letter-spacing: 3px;
+    text-shadow: 0 0 15px rgba(0, 191, 255, 0.6);
+}
 
-    /* Mobile Menu Logic */
-    .nav-links {
-      display: flex;
-      flex-direction: column;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      width: 100%;
-      background: rgba(3, 11, 16, 0.98);
-      padding: 0;
-      max-height: 0;
-      overflow: hidden;
-      transition: all 0.4s ease-in-out;
-      gap: 1.5rem;
-      align-items: center;
-      border-bottom: 0px solid var(--border);
-    }
+.nav-links a {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    margin-left: 25px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: 0.3s;
+    letter-spacing: 1px;
+}
 
-    .nav-links.active {
-      padding: 2rem 0;
-      max-height: 400px;
-      border-bottom: 1px solid var(--border);
-    }
+.nav-links a:hover { color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); }
 
-    .nav-links a {
-      color: rgba(255,255,255,0.8);
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
+.portal-btn {
+    margin-left: 30px;
+    background: transparent;
+    border: 1px solid var(--neon-blue);
+    padding: 8px 18px;
+    border-radius: 4px;
+    color: var(--neon-blue);
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s;
+}
 
-    .nav-btns { display: flex; align-items: center; gap: 1rem; }
+.portal-btn:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 20px var(--neon-blue); }
 
-    .portal-btn {
-      background: transparent;
-      border: 1px solid var(--neon-blue);
-      color: var(--neon-blue);
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      font-weight: 600;
-      font-size: 0.8rem;
-      cursor: pointer;
-    }
+/* Hero Section */
+section { min-height: 100vh; padding: 100px 10%; display: flex; align-items: center; }
 
-    .menu-toggle {
-      background: none;
-      border: none;
-      color: var(--neon-blue);
-      font-size: 1.5rem;
-      cursor: pointer;
-      display: block;
-    }
+.hero-layout {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 40px;
+    align-items: center;
+}
 
-    /* ── Hero ─────────────────────────────────────────────── */
-    #hero {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      padding: 7rem 5% 3rem;
-    }
+h1 {
+    font-family: 'Orbitron';
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    margin: 0;
+    line-height: 0.9;
+    text-transform: uppercase;
+}
 
-    .hero-container {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 3rem;
-    }
+.highlight {
+    color: var(--neon-blue);
+    -webkit-text-stroke: 1px var(--neon-blue);
+    background: linear-gradient(180deg, var(--neon-blue), #005f7a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
 
-    h1 {
-      font-family: 'Orbitron';
-      font-size: clamp(2.2rem, 8vw, 5rem);
-      line-height: 1.1;
-      margin-bottom: 1.5rem;
-    }
+.hero-image-box {
+    position: relative;
+    border: 1px solid var(--border);
+    height: 400px;
+    border-radius: 30px;
+    background: url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=1000') center/cover;
+    box-shadow: 0 0 50px rgba(0, 191, 255, 0.15);
+    animation: float 6s ease-in-out infinite;
+}
 
-    .highlight {
-      color: var(--neon-blue);
-      -webkit-text-stroke: 1px var(--neon-blue);
-      text-shadow: 0 0 20px rgba(0,191,255,0.4);
-    }
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
 
-    .hero-content p {
-      font-size: 1rem;
-      opacity: 0.8;
-      max-width: 500px;
-      margin: 0 auto 2rem;
-    }
+/* Glass Cards */
+.glass {
+    background: var(--glass);
+    backdrop-filter: blur(15px);
+    padding: 50px;
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+}
 
-    .hero-image-box {
-      width: 100%;
-      max-width: 450px;
-      aspect-ratio: 16/10;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=1000') center/cover;
-      animation: float 6s ease-in-out infinite;
-    }
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
 
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-15px); }
-    }
+.card {
+    background: rgba(255, 255, 255, 0.02);
+    padding: 35px;
+    border-radius: 20px;
+    transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+}
 
-    /* ── Grids & Cards ──────────────────────────────────── */
-    section { padding: 4rem 5%; }
-    
-    .glass {
-      background: var(--glass);
-      backdrop-filter: blur(12px);
-      padding: 2rem 1rem;
-      border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.08);
-    }
+.card::before {
+    content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+    background: var(--neon-blue); transform: scaleX(0); transition: 0.3s;
+}
 
-    h2 {
-      font-family: 'Orbitron';
-      color: var(--neon-blue);
-      font-size: 1.8rem;
-      margin-bottom: 2rem;
-      text-align: center;
-    }
+.card:hover {
+    transform: translateY(-15px) scale(1.02);
+    background: rgba(0, 191, 255, 0.08);
+    border-color: var(--neon-blue);
+}
 
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr; /* Default mobile: 1 column */
-      gap: 1.5rem;
-    }
+.card:hover::before { transform: scaleX(1); }
 
-    .stats-card, .solution-card {
-      background: rgba(0, 191, 255, 0.05);
-      border: 1px solid var(--border);
-      padding: 1.5rem;
-      border-radius: 12px;
-      text-align: center;
-    }
+.card h3 { font-family: 'Orbitron'; font-size: 2rem; color: var(--neon-blue); margin: 0; }
 
-    .stats-card h3 {
-      font-family: 'Orbitron';
-      font-size: 2.5rem;
-      color: var(--neon-blue);
-    }
+.cta {
+    background: var(--neon-blue);
+    padding: 16px 45px;
+    border: none;
+    color: black;
+    font-weight: 800;
+    font-family: 'Orbitron';
+    border-radius: 2px;
+    cursor: pointer;
+    margin-top: 30px;
+    clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+    transition: 0.3s;
+}
 
-    /* ── Contact ────────────────────────────────────────── */
-    #contact input, #contact textarea {
-      width: 100%;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      background: rgba(0,0,0,0.3);
-      border: 1px solid var(--border);
-      color: white;
-      border-radius: 8px;
-    }
+.cta:hover { transform: skew(-5deg); box-shadow: 10px 0 20px rgba(0,191,255,0.4); }
 
-    .cta {
-      background: var(--neon-blue);
-      color: black;
-      border: none;
-      padding: 1rem 2rem;
-      font-family: 'Orbitron';
-      font-weight: 700;
-      border-radius: 6px;
-      width: 100%;
-      cursor: pointer;
-    }
+/* Forms */
+input, textarea {
+    width: 100%; padding: 18px; margin-top: 15px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white;
+    box-sizing: border-box;
+}
 
-    /* ── Desktop Adjustments ────────────────────────────── */
-    @media (min-width: 768px) {
-      .logo { font-size: 1.5rem; }
-      .menu-toggle { display: none; }
-      
-      .nav-links {
-        position: static;
-        flex-direction: row;
-        max-height: none;
-        width: auto;
-        background: transparent;
-        border: none;
-        padding: 0;
-        margin-right: 2rem;
-      }
+footer { text-align: center; padding: 60px; font-size: 0.8rem; color: rgba(255,255,255,0.4); letter-spacing: 2px; }
 
-      .hero-container {
-        flex-direction: row;
-        text-align: left;
-        justify-content: space-between;
-      }
-
-      .hero-content { width: 55%; }
-      .hero-content p { margin: 0 0 2rem 0; }
-      .hero-image-box { width: 40%; }
-      
-      .grid { grid-template-columns: repeat(2, 1fr); }
-      .cta { width: auto; }
-    }
-
-    @media (min-width: 1024px) {
-      .grid { grid-template-columns: repeat(4, 1fr); }
-    }
-  </style>
+</style>
 </head>
+
 <body>
 
 <nav>
-  <div class="logo">RAMAY.BIO</div>
-  
-  <div class="nav-links" id="menu">
-    <a href="#hero">Home</a>
-    <a href="#catalog">Equipment</a>
-    <a href="#contact">Contact</a>
-  </div>
-
-  <div class="nav-btns">
-    <a href="/portal/login">
-  <button class="portal-btn">LOG-IN</button>
-</a>
-    <button class="menu-toggle" id="toggle-btn">☰</button>
-  </div>
+    <div class="logo">RAMAY.BIO</div>
+    <div>
+        <span class="nav-links">
+            <a href="#hero">Home</a>
+            <a href="#catalog">Equipment</a>
+            <a href="#portfolio">Partners</a>
+            <a href="#contact">Contact</a>
+        </span>
+        <button class="portal-btn"
+        onclick="window.location.href='/portal/login'">
+    LOG-IN
+</button>
+    </div>
 </nav>
 
 <section id="hero">
-  <div class="hero-container">
-    <div class="hero-content">
-      <h1>NEXT-GEN<br><span class="highlight">OPHTHALMICS</span></h1>
-      <p>Revolutionizing eye care across Pakistan with laser-precision diagnostic tools and surgical systems.</p>
-      <button class="cta">VIEW CATALOG</button>
+    <div class="hero-layout">
+        <div class="hero-content">
+            <h1>NEXT-GEN <br><span class="highlight">OPHTHALMICS</span></h1>
+            <p style="font-size: 1.1rem; opacity: 0.8; line-height: 1.6; margin: 25px 0;">
+                Revolutionizing eye care across Pakistan with laser-precision diagnostic tools and surgical systems. 
+                Where engineering meets clinical excellence.
+            </p>
+            <button class="cta">VIEW CATALOG</button>
+        </div>
+        <div class="hero-image-box"></div>
     </div>
-    <div class="hero-image-box"></div>
-  </div>
 </section>
 
 <section>
-  <div class="glass">
-    <h2>VITAL STATISTICS</h2>
-    <div class="grid">
-      <div class="stats-card"><h3>250+</h3><p>SYSTEMS</p></div>
-      <div class="stats-card"><h3>15Y</h3><p>EXPERIENCE</p></div>
-      <div class="stats-card"><h3>99%</h3><p>UPTIME</p></div>
-      <div class="stats-card"><h3>24/7</h3><p>SUPPORT</p></div>
+    <div class="glass">
+        <h2 style="font-family:Orbitron; letter-spacing: 4px; text-align: center;">VITAL STATISTICS</h2>
+        <div class="grid">
+            <div class="card" style="text-align:center;"><h3>250+</h3><p>SYSTEMS ACTIVE</p></div>
+            <div class="card" style="text-align:center;"><h3>15Y</h3><p>INDUSTRY LEADERSHIP</p></div>
+            <div class="card" style="text-align:center;"><h3>99%</h3><p>UPTIME RATE</p></div>
+            <div class="card" style="text-align:center;"><h3>24/7</h3><p>ENGINEER ON-SITE</p></div>
+        </div>
     </div>
-  </div>
 </section>
 
 <section id="catalog">
-  <div class="glass">
-    <h2>SOLUTIONS</h2>
-    <div class="grid">
-      <div class="solution-card"><h4>Phaco Systems</h4><p>Precision cataract fluidics.</p></div>
-      <div class="solution-card"><h4>Spectral OCT</h4><p>High-speed retinal mapping.</p></div>
-      <div class="solution-card"><h4>Slit Lamps</h4><p>Integrated digital imaging.</p></div>
-      <div class="solution-card"><h4>Surgical Scopes</h4><p>Micro-surgery depth.</p></div>
+    <div class="glass">
+        <h2 style="font-family:Orbitron; color:var(--neon-blue);">SOLUTIONS</h2>
+        <div class="grid">
+            <div class="card"><h4>Phaco Systems</h4><p>Ultramodern fluidics for cataract precision.</p></div>
+            <div class="card"><h4>Spectral OCT</h4><p>High-speed retinal mapping & analytics.</p></div>
+            <div class="card"><h4>Digital Slit Lamps</h4><p>Integrated imaging for seamless diagnostics.</p></div>
+            <div class="card"><h4>Surgical Scopes</h4><p>Enhanced depth perception for microsurgery.</p></div>
+        </div>
     </div>
-  </div>
 </section>
 
 <section id="contact">
-  <div class="glass">
-    <h2>REQUEST QUOTE</h2>
-    <input type="text" placeholder="Clinic Name">
-    <textarea rows="4" placeholder="How can we help?"></textarea>
-    <button class="cta">TRANSMIT INQUIRY</button>
-  </div>
+    <div class="glass" style="max-width:800px; margin:auto; border-color: var(--neon-blue);">
+        <h2 style="font-family:Orbitron; color:var(--neon-blue); text-align:center;">REQUEST QUOTE</h2>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <input type="text" placeholder="Clinic Name">
+            <input type="text" placeholder="Location">
+        </div>
+        <textarea rows="4" placeholder="How can we upgrade your facility?"></textarea>
+        <button class="cta" style="width:100%; margin-top: 20px; clip-path: none;">TRANSMIT INQUIRY</button>
+    </div>
 </section>
 
-<footer style="text-align: center; padding: 2rem; opacity: 0.5; font-size: 0.8rem;">
-  © 2026 RAMAY ELECTROMEDICS
+<footer>
+    © 2026 RAMAY ELECTROMEDICS | ARCHITECTED FOR VISION
 </footer>
 
 <script>
-// ─────────────────────────────────────────────
-// SCENE SETUP
-// ─────────────────────────────────────────────
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(
-  60,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
-
-const renderer = new THREE.WebGLRenderer({
-  antialias: true,
-  alpha: true
-});
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.domElement.style.position = "fixed";
-renderer.domElement.style.inset = "0";
-renderer.domElement.style.zIndex = "-1";
 document.body.appendChild(renderer.domElement);
 
-// ─────────────────────────────────────────────
-// LIGHTING (Medical Blue Atmosphere)
-// ─────────────────────────────────────────────
-const ambient = new THREE.AmbientLight(0xffffff, 0.3);
-scene.add(ambient);
-
-const pointLight = new THREE.PointLight(0x00bfff, 3);
-pointLight.position.set(20, 20, 20);
-scene.add(pointLight);
-
-const rimLight = new THREE.PointLight(0x00bfff, 1.5);
-rimLight.position.set(-20, -10, -20);
-scene.add(rimLight);
-
-// ─────────────────────────────────────────────
-// EYEBALL BASE
-// ─────────────────────────────────────────────
-const eyeGeometry = new THREE.SphereGeometry(8, 64, 64);
-
-const eyeMaterial = new THREE.MeshPhysicalMaterial({
-  color: 0xffffff,
-  roughness: 0.2,
-  metalness: 0,
-  transmission: 0.2,
-  clearcoat: 1,
-  clearcoatRoughness: 0
+// SPICIER GEOMETRY: Torus Knot (Looks like complex optical lens/DNA)
+const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+const material = new THREE.MeshPhongMaterial({
+    color: 0x00bfff,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.2
 });
+const knot = new THREE.Mesh(geometry, material);
+scene.add(knot);
 
-const eyeball = new THREE.Mesh(eyeGeometry, eyeMaterial);
-scene.add(eyeball);
+const light = new THREE.PointLight(0x00bfff, 2, 100);
+light.position.set(10, 10, 10);
+scene.add(light);
+scene.add(new THREE.AmbientLight(0xffffff, 0.2));
 
-// ─────────────────────────────────────────────
-// IRIS
-// ─────────────────────────────────────────────
-const irisGeometry = new THREE.CircleGeometry(3.2, 64);
-const irisMaterial = new THREE.MeshStandardMaterial({
-  color: 0x00bfff,
-  emissive: 0x003366,
-  emissiveIntensity: 0.8
-});
-
-const iris = new THREE.Mesh(irisGeometry, irisMaterial);
-iris.position.z = 7.9;
-eyeball.add(iris);
-
-// ─────────────────────────────────────────────
-// PUPIL
-// ─────────────────────────────────────────────
-const pupilGeometry = new THREE.CircleGeometry(1.2, 64);
-const pupilMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
-const pupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
-pupil.position.z = 0.01;
-iris.add(pupil);
-
-// ─────────────────────────────────────────────
-// SCANNING RING (Diagnostic Effect)
-// ─────────────────────────────────────────────
-const ringGeometry = new THREE.TorusGeometry(9, 0.08, 16, 100);
-const ringMaterial = new THREE.MeshBasicMaterial({
-  color: 0x00bfff,
-  transparent: true,
-  opacity: 0.4
-});
-const scanRing = new THREE.Mesh(ringGeometry, ringMaterial);
-scanRing.rotation.x = Math.PI / 2;
-scene.add(scanRing);
-
-// ─────────────────────────────────────────────
-// PARTICLE FIELD
-// ─────────────────────────────────────────────
-const particleCount = 1500;
-const particles = new THREE.BufferGeometry();
-const positions = new Float32Array(particleCount * 3);
-
-for (let i = 0; i < particleCount * 3; i++) {
-  positions[i] = (Math.random() - 0.5) * 200;
-}
-
-particles.setAttribute(
-  "position",
-  new THREE.BufferAttribute(positions, 3)
-);
-
-const particleMaterial = new THREE.PointsMaterial({
-  color: 0x00bfff,
-  size: 0.6,
-  transparent: true,
-  opacity: 0.5
-});
-
-const particleSystem = new THREE.Points(particles, particleMaterial);
-scene.add(particleSystem);
-
-// ─────────────────────────────────────────────
-// CAMERA
-// ─────────────────────────────────────────────
 camera.position.z = 30;
 
-// ─────────────────────────────────────────────
-// ANIMATION LOOP
-// ─────────────────────────────────────────────
+// MOUSE INTERACTION
+document.addEventListener('mousemove', (event) => {
+    const x = (event.clientX / window.innerWidth) - 0.5;
+    const y = (event.clientY / window.innerHeight) - 0.5;
+    gsap.to(knot.rotation, { x: y * 2, y: x * 2, duration: 2 });
+});
+
 function animate() {
-  requestAnimationFrame(animate);
-
-  eyeball.rotation.y += 0.002;
-  scanRing.rotation.z += 0.01;
-
-  particleSystem.rotation.y += 0.0005;
-
-  renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+    knot.rotation.z += 0.001;
+    renderer.render(scene, camera);
 }
-
 animate();
 
-// ─────────────────────────────────────────────
-// RESIZE
-// ─────────────────────────────────────────────
-window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
 });
 </script>
+
 </body>
 </html>
-
-
