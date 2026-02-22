@@ -324,52 +324,152 @@
 </footer>
 
 <script>
-// Three.js background
+// ─────────────────────────────────────────────
+// SCENE SETUP
+// ─────────────────────────────────────────────
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+const camera = new THREE.PerspectiveCamera(
+  60,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+);
+
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+  alpha: true
+});
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.domElement.style.position = "fixed";
+renderer.domElement.style.inset = "0";
+renderer.domElement.style.zIndex = "-1";
 document.body.appendChild(renderer.domElement);
 
-const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
-const material = new THREE.MeshPhongMaterial({ color: 0x00bfff, wireframe: true, transparent: true, opacity: 0.15 });
-const knot = new THREE.Mesh(geometry, material);
-scene.add(knot);
+// ─────────────────────────────────────────────
+// LIGHTING (Medical Blue Atmosphere)
+// ─────────────────────────────────────────────
+const ambient = new THREE.AmbientLight(0xffffff, 0.3);
+scene.add(ambient);
 
-scene.add(new THREE.PointLight(0x00bfff, 2));
-scene.add(new THREE.AmbientLight(0xffffff, 0.2));
+const pointLight = new THREE.PointLight(0x00bfff, 3);
+pointLight.position.set(20, 20, 20);
+scene.add(pointLight);
+
+const rimLight = new THREE.PointLight(0x00bfff, 1.5);
+rimLight.position.set(-20, -10, -20);
+scene.add(rimLight);
+
+// ─────────────────────────────────────────────
+// EYEBALL BASE
+// ─────────────────────────────────────────────
+const eyeGeometry = new THREE.SphereGeometry(8, 64, 64);
+
+const eyeMaterial = new THREE.MeshPhysicalMaterial({
+  color: 0xffffff,
+  roughness: 0.2,
+  metalness: 0,
+  transmission: 0.2,
+  clearcoat: 1,
+  clearcoatRoughness: 0
+});
+
+const eyeball = new THREE.Mesh(eyeGeometry, eyeMaterial);
+scene.add(eyeball);
+
+// ─────────────────────────────────────────────
+// IRIS
+// ─────────────────────────────────────────────
+const irisGeometry = new THREE.CircleGeometry(3.2, 64);
+const irisMaterial = new THREE.MeshStandardMaterial({
+  color: 0x00bfff,
+  emissive: 0x003366,
+  emissiveIntensity: 0.8
+});
+
+const iris = new THREE.Mesh(irisGeometry, irisMaterial);
+iris.position.z = 7.9;
+eyeball.add(iris);
+
+// ─────────────────────────────────────────────
+// PUPIL
+// ─────────────────────────────────────────────
+const pupilGeometry = new THREE.CircleGeometry(1.2, 64);
+const pupilMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+const pupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
+pupil.position.z = 0.01;
+iris.add(pupil);
+
+// ─────────────────────────────────────────────
+// SCANNING RING (Diagnostic Effect)
+// ─────────────────────────────────────────────
+const ringGeometry = new THREE.TorusGeometry(9, 0.08, 16, 100);
+const ringMaterial = new THREE.MeshBasicMaterial({
+  color: 0x00bfff,
+  transparent: true,
+  opacity: 0.4
+});
+const scanRing = new THREE.Mesh(ringGeometry, ringMaterial);
+scanRing.rotation.x = Math.PI / 2;
+scene.add(scanRing);
+
+// ─────────────────────────────────────────────
+// PARTICLE FIELD
+// ─────────────────────────────────────────────
+const particleCount = 1500;
+const particles = new THREE.BufferGeometry();
+const positions = new Float32Array(particleCount * 3);
+
+for (let i = 0; i < particleCount * 3; i++) {
+  positions[i] = (Math.random() - 0.5) * 200;
+}
+
+particles.setAttribute(
+  "position",
+  new THREE.BufferAttribute(positions, 3)
+);
+
+const particleMaterial = new THREE.PointsMaterial({
+  color: 0x00bfff,
+  size: 0.6,
+  transparent: true,
+  opacity: 0.5
+});
+
+const particleSystem = new THREE.Points(particles, particleMaterial);
+scene.add(particleSystem);
+
+// ─────────────────────────────────────────────
+// CAMERA
+// ─────────────────────────────────────────────
 camera.position.z = 30;
 
+// ─────────────────────────────────────────────
+// ANIMATION LOOP
+// ─────────────────────────────────────────────
 function animate() {
   requestAnimationFrame(animate);
-  knot.rotation.z += 0.001;
+
+  eyeball.rotation.y += 0.002;
+  scanRing.rotation.z += 0.01;
+
+  particleSystem.rotation.y += 0.0005;
+
   renderer.render(scene, camera);
 }
+
 animate();
 
-window.addEventListener('resize', () => {
+// ─────────────────────────────────────────────
+// RESIZE
+// ─────────────────────────────────────────────
+window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
-
-// Improved Mobile Menu Toggle
-const toggleBtn = document.getElementById('toggle-btn');
-const menu = document.getElementById('menu');
-
-toggleBtn.addEventListener('click', () => {
-  menu.classList.toggle('active');
-  toggleBtn.textContent = menu.classList.contains('active') ? '✕' : '☰';
-});
-
-// Close menu when clicking a link
-document.querySelectorAll('.nav-links a').forEach(link => {
-  link.addEventListener('click', () => {
-    menu.classList.remove('active');
-    toggleBtn.textContent = '☰';
-  });
-});
 </script>
 </body>
 </html>
+
 
