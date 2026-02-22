@@ -1,8 +1,7 @@
 # inventory_routes.py
 from flask import Blueprint, request, jsonify, render_template, redirect, g, url_for, flash
-import psycopg2
-from psycopg2 import sql
-from inventory_db import get_db   # assuming this now returns psycopg2 connection
+import sqlite3
+from inventory_db import get_db
 
 inventory_bp = Blueprint("inventory", __name__, url_prefix="/inventory")
 
@@ -15,24 +14,23 @@ def add_lens():
     name = request.form.get("name", "").strip()
     if not name:
         flash("Lens name is required", "danger")
-        return redirect("/inventory")
+        return redirect("/portal/inventory")
 
     con = get_db()
     cur = con.cursor()
 
-    cur.execute("SELECT id FROM lenses WHERE name = %s", (name,))
+    cur.execute("SELECT id FROM lenses WHERE name = ?", (name,))
     if cur.fetchone():
         flash("Lens already exists", "danger")
         con.close()
-        return redirect("/inventory")
+        return redirect("/portal/inventory")
 
-    cur.execute("INSERT INTO lenses (name) VALUES (%s)", (name,))
+    cur.execute("INSERT INTO lenses (name) VALUES (?)", (name,))
     con.commit()
     con.close()
 
     flash("Lens added successfully!", "success")
-    return redirect("/inventory")
-
+    return redirect("/portal/inventory")
 
 @inventory_bp.route("/add-doctor", methods=["POST"])
 def add_doctor():
@@ -40,21 +38,24 @@ def add_doctor():
         return redirect(url_for("auth.login"))
 
     name = request.form.get("name", "").strip()
+
     if not name:
         flash("Doctor name is required", "danger")
-        return redirect("/inventory")
+        return redirect("/portal/inventory")
 
     con = get_db()
     cur = con.cursor()
 
-    cur.execute("SELECT id FROM doctors WHERE name = %s", (name,))
-    if cur.fetchone():
+    cur.execute("SELECT id FROM doctors WHERE name = ?", (name,))
+    existing = cur.fetchone()
+
+    if existing:
         flash("Doctor already exists!", "danger")
         con.close()
-        return redirect("/inventory")
+        return redirect("/portal/inventory")
 
     try:
-        cur.execute("INSERT INTO doctors (name) VALUES (%s)", (name,))
+        cur.execute("INSERT INTO doctors (name) VALUES (?)", (name,))
         con.commit()
         flash("Doctor added successfully!", "success")
     except Exception as e:
@@ -63,7 +64,8 @@ def add_doctor():
     finally:
         con.close()
 
-    return redirect("/inventory")
+    return redirect("/portal/inventory")
+
 
 
 @inventory_bp.route("/")
@@ -78,7 +80,7 @@ def inventory_page():
     selected_power = request.args.get("power")
 
     cur.execute("SELECT id, name FROM lenses ORDER BY name")
-    lenses = cur.fetchall()           # list of tuples: (id, name)
+    lenses = cur.fetchall()
 
     cur.execute("SELECT id, name FROM doctors ORDER BY name")
     doctors = cur.fetchall()
@@ -93,23 +95,21 @@ def inventory_page():
     params = []
 
     if selected_lens:
-        conditions.append("l.id = %s")
+        conditions.append("l.id = ?")
         params.append(selected_lens)
     if selected_power:
-        conditions.append("s.power = %s")
+        conditions.append("s.power = ?")
         params.append(selected_power)
 
     if conditions:
         query += " WHERE " + " AND ".join(conditions)
 
-    # Note: PostgreSQL string sort is case-sensitive by default
-    # If you really want case-insensitive → add COLLATE "C" or use LOWER()
-    query += " ORDER BY l.name, s.power"
+    query += " ORDER BY l.name, s.power COLLATE NOCASE"
 
     cur.execute(query, params)
-    stock = cur.fetchall()            # list of tuples
+    stock = cur.fetchall()
 
-    # Recent transactions (last 50)
+    # Recent transactions — explicit column order to match template
     recent_query = """
     SELECT
         lens_name,
@@ -150,7 +150,7 @@ def inventory_page():
     recent = cur.fetchall()
 
     # Staff Delivery Activity — only team members
-    staff_query = """
+    cur.execute("""
         SELECT 
             username,
             lens_name,
@@ -192,18 +192,24 @@ def inventory_page():
             WHERE u.role = 'team'
         )
         ORDER BY created_at DESC
-    """
-    cur.execute(staff_query)
+    """)
     employee_log = cur.fetchall()
 
-    # You can keep debug prints, but row is now always tuple
     print("STAFF DATA:", employee_log)
+
+    # Debug print — keep this for now; remove later when stable
     print("\n=== DEBUG: Recent transactions ===")
     if recent:
         first = recent[0]
-        print("Row type: tuple")
-        print("Sample row:", first)
-        print("Quantity (index 3):", first[3])
+        print("Row type:", type(first).__name__)
+        print("Has keys attribute:", hasattr(first, 'keys'))
+        if hasattr(first, 'keys'):
+            print("Keys:", list(first.keys()))
+            print("Sample row dict:", dict(first))
+            print("Quantity value:", first["quantity"])
+        else:
+            print("Row as tuple:", tuple(first))
+            print("Quantity (position 3):", first[3])
     else:
         print("No recent rows")
     print("===================================\n")
@@ -236,7 +242,7 @@ def stock_in():
             raise ValueError("Quantity must be positive")
     except (ValueError, TypeError) as e:
         flash(f"Invalid input: {str(e)}", "danger")
-        return redirect("/inventory")
+        return redirect("/portal/inventory")
 
     con = get_db()
     cur = con.cursor()
@@ -245,47 +251,46 @@ def stock_in():
         if transaction_type == "IN":
             cur.execute("""
                 INSERT INTO stock_in (lens_id, power, quantity, added_by)
-                VALUES (%s, %s, %s, %s)
+                VALUES (?, ?, ?, ?)
             """, (lens_id, power, quantity, g.user["id"]))
 
             cur.execute("""
                 INSERT INTO inventory_stock (lens_id, power, quantity_available)
-                VALUES (%s, %s, %s)
-                ON CONFLICT (lens_id, power)
-                DO UPDATE SET quantity_available = inventory_stock.quantity_available + EXCLUDED.quantity_available
+                VALUES (?, ?, ?)
+                ON CONFLICT(lens_id, power)
+                DO UPDATE SET quantity_available = quantity_available + excluded.quantity_available
             """, (lens_id, power, quantity))
 
         elif transaction_type == "OUT":
             doctor_id = data.get("doctor_id")
             if not doctor_id:
                 flash("Doctor is required for stock OUT", "danger")
-                return redirect("/inventory")
+                return redirect("/portal/inventory")
 
-            # Safety check
+            # Safety check: enough stock?
             cur.execute("""
-                SELECT quantity_available 
-                FROM inventory_stock 
-                WHERE lens_id = %s AND power = %s
+                SELECT quantity_available FROM inventory_stock 
+                WHERE lens_id = ? AND power = ?
             """, (lens_id, power))
             current = cur.fetchone()
-            if not current or current[0] < quantity:
+            if not current or current["quantity_available"] < quantity:
                 flash("Not enough stock available", "danger")
-                return redirect("/inventory")
+                return redirect("/portal/inventory")
 
             cur.execute("""
                 INSERT INTO stock_out (lens_id, power, quantity, user_id, doctor_id, delivery_date)
-                VALUES (%s, %s, %s, %s, %s, CURRENT_DATE)
+                VALUES (?, ?, ?, ?, ?, DATE('now'))
             """, (lens_id, power, quantity, g.user["id"], doctor_id))
 
             cur.execute("""
                 UPDATE inventory_stock
-                SET quantity_available = quantity_available - %s
-                WHERE lens_id = %s AND power = %s
+                SET quantity_available = quantity_available - ?
+                WHERE lens_id = ? AND power = ?
             """, (quantity, lens_id, power))
 
         else:
             flash("Invalid transaction type (must be IN or OUT)", "danger")
-            return redirect("/inventory")
+            return redirect("/portal/inventory")
 
         con.commit()
         flash(f"{transaction_type} transaction processed successfully!", "success")
@@ -296,7 +301,7 @@ def stock_in():
     finally:
         con.close()
 
-    return redirect("/inventory#inventory-levels")
+    return redirect("/portal/inventory#inventory-levels")
 
 
 @inventory_bp.route("/api/stock")
@@ -314,11 +319,11 @@ def view_stock():
 
         return jsonify([
             {
-                "lens": r[0],
-                "brand": r[1] or "N/A",
-                "power": r[2],
-                "quantity": r[3],
-                "reorder": r[4]
+                "lens": r["name"],
+                "brand": r["brand"] or "N/A",
+                "power": r["power"],
+                "quantity": r["quantity_available"],
+                "reorder": r["reorder_level"]
             } for r in rows
         ])
     finally:
