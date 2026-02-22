@@ -1,5 +1,5 @@
 # inventory_db.py
-import sqlite3
+from database import get_db
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -94,5 +94,6 @@ def init_db():
 
         add_column("inventory_stock", "power",        "TEXT NOT NULL DEFAULT ''")
         add_column("inventory_stock", "last_updated", "TEXT DEFAULT (datetime('now'))")
+
 
         con.commit()
