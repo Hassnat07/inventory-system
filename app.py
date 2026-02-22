@@ -14,7 +14,7 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.jinja_env.auto_reload = True
 
 app.register_blueprint(auth_bp, url_prefix="/portal")
-app.register_blueprint(inventory_bp, url_prefix="/portal")
+app.register_blueprint(inventory_bp, url_prefix="/portal/inventory")
 
 # Initialize database tables
 from database import init_auth_tables
@@ -27,14 +27,14 @@ init_db()
 def home():
     return render_template("home.html")
 
-@app.route("/admin")
+@app.route("/portal/admin")
 def admin_dashboard():
     user = g.get("user")
     if not user or user.get("role") != "admin":
         return redirect(url_for("auth.login"))
     return render_template("admin_dashboard.html")
 
-@app.route("/team")
+@app.route("/portal/team")
 def team_dashboard():
     user = g.get("user")
     if not user or user.get("role") != "team":
