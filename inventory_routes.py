@@ -3,7 +3,7 @@ from flask import Blueprint, request, jsonify, render_template, redirect, g, url
 import sqlite3
 from inventory_db import get_db
 
-inventory_bp = Blueprint("inventory", __name__, url_prefix="/inventory")
+inventory_bp = Blueprint("inventory", __name__)
 
 
 @inventory_bp.route("/add-lens", methods=["POST"])
