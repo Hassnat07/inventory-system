@@ -1,16 +1,14 @@
-from flask import Flask, render_template, request, send_file
-import sqlite3
+
+from database import get_db
 from datetime import datetime
 from generate_pdf import generate_pdf
 from flask import Flask, render_template, request, send_file, redirect, url_for, session, g
 from auth_routes import auth_bp
 from inventory_routes import inventory_bp
-import os
-
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key'  # Added for session security
-DB_FILE = "invoices.db"
+
 # Development: auto-reload templates and clear Jinja cache in debug mode
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.jinja_env.auto_reload = True
@@ -45,7 +43,8 @@ def team_dashboard():
     user = g.get("user")
     if not user or user.get("role") != "team":
         return redirect(url_for("auth.login"))
-    con = sqlite3.connect(DB_FILE)
+
+    con = get_db()
     cur = con.cursor()
 
     cur.execute("""
@@ -56,7 +55,9 @@ def team_dashboard():
         FROM stock_transactions s
         JOIN lenses l ON l.id = s.lens_id
         GROUP BY l.name, s.power
-        HAVING qty > 0
+        HAVING SUM(
+            CASE WHEN s.type='IN' THEN s.quantity ELSE -s.quantity END
+        ) > 0
         ORDER BY l.name
     """)
     stock = cur.fetchall()
@@ -65,7 +66,7 @@ def team_dashboard():
         SELECT l.name, e.power, e.quantity, e.delivered_at
         FROM employee_deliveries e
         JOIN lenses l ON l.id = e.lens_id
-        WHERE e.employee = ?
+        WHERE e.employee = %s
         ORDER BY e.delivered_at DESC
     """, (user["username"],))
     my_deliveries = cur.fetchall()
@@ -122,5 +123,4 @@ def invoice():
     return render_template("invoice.html")
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
+    app.run(debug=True)
