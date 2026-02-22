@@ -2,8 +2,12 @@ import os
 import psycopg2
 
 def get_db():
-    return psycopg2.connect(os.getenv("DATABASE_URL"))
+    db_url = os.environ.get("DATABASE_URL")
 
+    if not db_url:
+        raise RuntimeError("DATABASE_URL is missing in Railway")
+
+    return psycopg2.connect(db_url)
 # ────────────────────────────────────────────────
 # Connection settings – CHANGE THESE to match your PostgreSQL setup
 # ────────────────────────────────────────────────
@@ -137,3 +141,4 @@ def init_inventory_tables():
 
     con.commit()
     con.close()
+
