@@ -2,279 +2,310 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Ramay Electromedics</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ramay Electromedics | Precision Ophthalmic Tech</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
 
 <style>
-:root{
-  --primary:#1f3c88;
-  --secondary:#274b9f;
-  --bg:#f4f6fb;
-  --dark:#1e1e1e;
-  --muted:#6b7280;
+:root {
+    --neon-blue: #00bfff;
+    --deep-bg: #030b10;
+    --glass: rgba(255, 255, 255, 0.03);
+    --border: rgba(0, 191, 255, 0.3);
 }
 
-body{
-  margin:0;
-  font-family:"Segoe UI",Roboto,Arial,sans-serif;
-  background:var(--bg);
-  color:var(--dark);
+body {
+    margin: 0;
+    background: var(--deep-bg);
+    color: white;
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
 }
 
-/* ===== HERO ===== */
-.hero{
-  background:linear-gradient(135deg,#ffffff,#eef2ff);
-  padding:120px 20px 100px;
-  text-align:center;
+canvas { position: fixed; top: 0; left: 0; z-index: -1; }
+
+/* Navigation Spice */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 8%;
+    position: fixed;
+    width: 100%;
+    background: rgba(3, 11, 16, 0.8);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    z-index: 100;
+    box-sizing: border-box;
 }
 
-.hero h1{
-  font-size:44px;
-  color:var(--primary);
-  margin-bottom:15px;
+.logo {
+    font-family: 'Orbitron';
+    color: var(--neon-blue);
+    font-weight: 900;
+    letter-spacing: 3px;
+    text-shadow: 0 0 15px rgba(0, 191, 255, 0.6);
 }
 
-.hero p{
-  font-size:18px;
-  max-width:820px;
-  margin:0 auto 40px;
-  color:#444;
-  line-height:1.8;
+.nav-links a {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    margin-left: 25px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: 0.3s;
+    letter-spacing: 1px;
 }
 
-.hero-buttons{
-  display:flex;
-  justify-content:center;
-  gap:20px;
-  flex-wrap:wrap;
+.nav-links a:hover { color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); }
+
+.portal-btn {
+    margin-left: 30px;
+    background: transparent;
+    border: 1px solid var(--neon-blue);
+    padding: 8px 18px;
+    border-radius: 4px;
+    color: var(--neon-blue);
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s;
 }
 
-.btn{
-  padding:15px 38px;
-  border-radius:8px;
-  font-size:15px;
-  font-weight:600;
-  text-decoration:none;
-  transition:.25s;
+.portal-btn:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 20px var(--neon-blue); }
+
+/* Hero Section */
+section { min-height: 100vh; padding: 100px 10%; display: flex; align-items: center; }
+
+.hero-layout {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 40px;
+    align-items: center;
 }
 
-.btn-primary{
-  background:var(--primary);
-  color:#fff;
+h1 {
+    font-family: 'Orbitron';
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    margin: 0;
+    line-height: 0.9;
+    text-transform: uppercase;
 }
 
-.btn-primary:hover{background:var(--secondary);}
-
-.btn-outline{
-  border:2px solid var(--primary);
-  color:var(--primary);
+.highlight {
+    color: var(--neon-blue);
+    -webkit-text-stroke: 1px var(--neon-blue);
+    background: linear-gradient(180deg, var(--neon-blue), #005f7a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-.btn-outline:hover{
-  background:var(--primary);
-  color:#fff;
+.hero-image-box {
+    position: relative;
+    border: 1px solid var(--border);
+    height: 400px;
+    border-radius: 30px;
+    background: url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=1000') center/cover;
+    box-shadow: 0 0 50px rgba(0, 191, 255, 0.15);
+    animation: float 6s ease-in-out infinite;
 }
 
-/* ===== SECTION ===== */
-.section{
-  padding:90px 20px;
-  background:#fff;
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
 }
 
-.section.alt{background:#f9fafb;}
-
-.container{
-  max-width:1100px;
-  margin:auto;
+/* Glass Cards */
+.glass {
+    background: var(--glass);
+    backdrop-filter: blur(15px);
+    padding: 50px;
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
 }
 
-.section h2{
-  text-align:center;
-  font-size:34px;
-  color:var(--primary);
-  margin-bottom:25px;
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
 }
 
-.section p{
-  text-align:center;
-  max-width:850px;
-  margin:0 auto 60px;
-  font-size:16px;
-  line-height:1.8;
-  color:#444;
+.card {
+    background: rgba(255, 255, 255, 0.02);
+    padding: 35px;
+    border-radius: 20px;
+    transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    position: relative;
+    overflow: hidden;
 }
 
-/* ===== FEATURES ===== */
-.features{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:30px;
+.card::before {
+    content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+    background: var(--neon-blue); transform: scaleX(0); transition: 0.3s;
 }
 
-.feature-box{
-  background:#fff;
-  padding:30px;
-  border-radius:14px;
-  box-shadow:0 12px 30px rgba(0,0,0,.06);
+.card:hover {
+    transform: translateY(-15px) scale(1.02);
+    background: rgba(0, 191, 255, 0.08);
+    border-color: var(--neon-blue);
 }
 
-.feature-box h3{
-  margin-bottom:12px;
-  color:var(--primary);
+.card:hover::before { transform: scaleX(1); }
+
+.card h3 { font-family: 'Orbitron'; font-size: 2rem; color: var(--neon-blue); margin: 0; }
+
+.cta {
+    background: var(--neon-blue);
+    padding: 16px 45px;
+    border: none;
+    color: black;
+    font-weight: 800;
+    font-family: 'Orbitron';
+    border-radius: 2px;
+    cursor: pointer;
+    margin-top: 30px;
+    clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+    transition: 0.3s;
 }
 
-.feature-box p{
-  font-size:14.5px;
-  color:#555;
-  line-height:1.7;
+.cta:hover { transform: skew(-5deg); box-shadow: 10px 0 20px rgba(0,191,255,0.4); }
+
+/* Forms */
+input, textarea {
+    width: 100%; padding: 18px; margin-top: 15px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white;
+    box-sizing: border-box;
 }
 
-/* ===== TRUST ===== */
-.trust{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:25px;
-  text-align:center;
-}
+footer { text-align: center; padding: 60px; font-size: 0.8rem; color: rgba(255,255,255,0.4); letter-spacing: 2px; }
 
-.trust div{
-  padding:30px;
-  border-radius:12px;
-  background:#fff;
-  box-shadow:0 10px 25px rgba(0,0,0,.05);
-}
-
-.trust strong{
-  font-size:26px;
-  color:var(--primary);
-}
-
-/* ===== FOOTER ===== */
-.footer{
-  background:#111827;
-  color:#cbd5e1;
-  padding:50px 20px;
-  text-align:center;
-}
-
-.footer p{
-  font-size:14px;
-  margin:5px 0;
-}
-
-/* ===== MOBILE ===== */
-@media(max-width:600px){
-  .hero h1{font-size:30px;}
-}
 </style>
 </head>
 
 <body>
 
-<!-- HERO -->
-<section class="hero">
-  <h1>Ramay Electromedics</h1>
-  <p>
-    Trusted ophthalmic solutions for hospitals, clinics, and eye care professionals.
-    Delivering certified ophthalmic lenses with accuracy, accountability,
-    and transparent medical record management.
-  </p>
-
-  <div class="hero-buttons">
-    <a href="/login" class="btn btn-primary">Team Login</a>
-    <a href="/login" class="btn btn-outline">Admin Login</a>
-  </div>
-</section>
-
-<!-- ABOUT -->
-<section class="section">
-  <div class="container">
-    <h2>Who We Are</h2>
-    <p>
-      Ramay Electromedics is a specialized ophthalmic supplier supporting hospitals,
-      eye surgeons, and clinics with dependable supply chains, precise inventory
-      control, and professional documentation systems designed for healthcare environments.
-    </p>
-  </div>
-</section>
-
-<!-- SERVICES -->
-<section class="section alt">
-  <div class="container">
-    <h2>What We Do</h2>
-
-    <div class="features">
-      <div class="feature-box">
-        <h3>Ophthalmic Lens Supply</h3>
-        <p>Certified ophthalmic lenses supplied with quality assurance and traceability.</p>
-      </div>
-
-      <div class="feature-box">
-        <h3>Hospital Support</h3>
-        <p>Serving hospitals, clinics, and surgeons with consistent availability.</p>
-      </div>
-
-      <div class="feature-box">
-        <h3>Inventory Transparency</h3>
-        <p>Accurate tracking, documentation, and accountability in every transaction.</p>
-      </div>
+<nav>
+    <div class="logo">RAMAY.BIO</div>
+    <div>
+        <span class="nav-links">
+            <a href="#hero">Home</a>
+            <a href="#catalog">Equipment</a>
+            <a href="#portfolio">Partners</a>
+            <a href="#contact">Contact</a>
+        </span>
+        <button class="portal-btn"
+        onclick="window.location.href='/login'">
+    LOG-IN
+</button>
     </div>
-  </div>
-</section>
+</nav>
 
-<!-- TRUST -->
-<section class="section">
-  <div class="container">
-    <h2>Why Trust Ramay Electromedics</h2>
-
-    <div class="trust">
-      <div>
-        <strong>100%</strong>
-        <p>Medical-grade documentation</p>
-      </div>
-      <div>
-        <strong>Reliable</strong>
-        <p>Hospital-focused operations</p>
-      </div>
-      <div>
-        <strong>Professional</strong>
-        <p>Compliance-oriented systems</p>
-      </div>
+<section id="hero">
+    <div class="hero-layout">
+        <div class="hero-content">
+            <h1>NEXT-GEN <br><span class="highlight">OPHTHALMICS</span></h1>
+            <p style="font-size: 1.1rem; opacity: 0.8; line-height: 1.6; margin: 25px 0;">
+                Revolutionizing eye care across Pakistan with laser-precision diagnostic tools and surgical systems. 
+                Where engineering meets clinical excellence.
+            </p>
+            <button class="cta">VIEW CATALOG</button>
+        </div>
+        <div class="hero-image-box"></div>
     </div>
-  </div>
 </section>
 
-<!-- FOOTER -->
-<footer class="footer">
-  <p>© {{ year }} Ramay Electromedics</p>
-  <p>Ophthalmic Solutions • Medical Supply • Professional Systems</p>
+<section>
+    <div class="glass">
+        <h2 style="font-family:Orbitron; letter-spacing: 4px; text-align: center;">VITAL STATISTICS</h2>
+        <div class="grid">
+            <div class="card" style="text-align:center;"><h3>250+</h3><p>SYSTEMS ACTIVE</p></div>
+            <div class="card" style="text-align:center;"><h3>15Y</h3><p>INDUSTRY LEADERSHIP</p></div>
+            <div class="card" style="text-align:center;"><h3>99%</h3><p>UPTIME RATE</p></div>
+            <div class="card" style="text-align:center;"><h3>24/7</h3><p>ENGINEER ON-SITE</p></div>
+        </div>
+    </div>
+</section>
+
+<section id="catalog">
+    <div class="glass">
+        <h2 style="font-family:Orbitron; color:var(--neon-blue);">SOLUTIONS</h2>
+        <div class="grid">
+            <div class="card"><h4>Phaco Systems</h4><p>Ultramodern fluidics for cataract precision.</p></div>
+            <div class="card"><h4>Spectral OCT</h4><p>High-speed retinal mapping & analytics.</p></div>
+            <div class="card"><h4>Digital Slit Lamps</h4><p>Integrated imaging for seamless diagnostics.</p></div>
+            <div class="card"><h4>Surgical Scopes</h4><p>Enhanced depth perception for microsurgery.</p></div>
+        </div>
+    </div>
+</section>
+
+<section id="contact">
+    <div class="glass" style="max-width:800px; margin:auto; border-color: var(--neon-blue);">
+        <h2 style="font-family:Orbitron; color:var(--neon-blue); text-align:center;">REQUEST QUOTE</h2>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <input type="text" placeholder="Clinic Name">
+            <input type="text" placeholder="Location">
+        </div>
+        <textarea rows="4" placeholder="How can we upgrade your facility?"></textarea>
+        <button class="cta" style="width:100%; margin-top: 20px; clip-path: none;">TRANSMIT INQUIRY</button>
+    </div>
+</section>
+
+<footer>
+    © 2026 RAMAY ELECTROMEDICS | ARCHITECTED FOR VISION
 </footer>
+
+<script>
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// SPICIER GEOMETRY: Torus Knot (Looks like complex optical lens/DNA)
+const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+const material = new THREE.MeshPhongMaterial({
+    color: 0x00bfff,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.2
+});
+const knot = new THREE.Mesh(geometry, material);
+scene.add(knot);
+
+const light = new THREE.PointLight(0x00bfff, 2, 100);
+light.position.set(10, 10, 10);
+scene.add(light);
+scene.add(new THREE.AmbientLight(0xffffff, 0.2));
+
+camera.position.z = 30;
+
+// MOUSE INTERACTION
+document.addEventListener('mousemove', (event) => {
+    const x = (event.clientX / window.innerWidth) - 0.5;
+    const y = (event.clientY / window.innerHeight) - 0.5;
+    gsap.to(knot.rotation, { x: y * 2, y: x * 2, duration: 2 });
+});
+
+function animate() {
+    requestAnimationFrame(animate);
+    knot.rotation.z += 0.001;
+    renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
 
 </body>
 </html>
-<style>
-    /* ===== REVEAL ANIMATION ===== */
-    .reveal {
-      opacity: 0;
-      transform: translateY(25px);
-      transition: opacity 0.8s ease, transform 0.8s ease;
-    }
-    
-    .reveal.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    
-    /* Hover polish */
-    .feature-box,
-    .trust div {
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    
-    .feature-box:hover,
-    .trust div:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 18px 40px rgba(0,0,0,0.12);
-    }
-    </style>
-    
