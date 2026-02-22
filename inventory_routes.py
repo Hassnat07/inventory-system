@@ -104,7 +104,7 @@ def inventory_page():
     if conditions:
         query += " WHERE " + " AND ".join(conditions)
 
-    query += " ORDER BY l.name, s.power COLLATE NOCASE"
+    query += " ORDER BY LOWER(l.name), LOWER(s.power)"
 
     cur.execute(query, params)
     stock = cur.fetchall()
@@ -328,3 +328,4 @@ def view_stock():
         ])
     finally:
         con.close()
+
