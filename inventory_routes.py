@@ -4,7 +4,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from inventory_db import get_db
 
-inventory_bp = Blueprint("inventory", __name__, url_prefix="/inventory")
+inventory_bp = Blueprint("inventory", __name__)
 
 
 # -----------------------------
@@ -18,7 +18,7 @@ def add_lens():
     name = request.form.get("name", "").strip()
     if not name:
         flash("Lens name is required", "danger")
-        return redirect("/portal/inventory")
+        return redirect(url_for("inventory.inventory_page"))
 
     con = get_db()
     cur = con.cursor(cursor_factory=RealDictCursor)
@@ -27,7 +27,7 @@ def add_lens():
         cur.execute("SELECT id FROM lenses WHERE name = %s", (name,))
         if cur.fetchone():
             flash("Lens already exists", "danger")
-            return redirect("/portal/inventory")
+            return redirect(url_for("inventory.inventory_page"))
 
         cur.execute("INSERT INTO lenses (name) VALUES (%s)", (name,))
         con.commit()
@@ -40,7 +40,7 @@ def add_lens():
         cur.close()
         con.close()
 
-    return redirect("/portal/inventory")
+    return redirect(url_for("inventory.inventory_page"))
 
 
 # -----------------------------
@@ -54,7 +54,7 @@ def add_doctor():
     name = request.form.get("name", "").strip()
     if not name:
         flash("Doctor name is required", "danger")
-        return redirect("/portal/inventory")
+        return redirect(url_for("inventory.inventory_page"))
 
     con = get_db()
     cur = con.cursor(cursor_factory=RealDictCursor)
@@ -63,7 +63,7 @@ def add_doctor():
         cur.execute("SELECT id FROM doctors WHERE name = %s", (name,))
         if cur.fetchone():
             flash("Doctor already exists!", "danger")
-            return redirect("/portal/inventory")
+            return redirect(url_for("inventory.inventory_page"))
 
         cur.execute("INSERT INTO doctors (name) VALUES (%s)", (name,))
         con.commit()
@@ -76,7 +76,7 @@ def add_doctor():
         cur.close()
         con.close()
 
-    return redirect("/portal/inventory")
+    return redirect(url_for("inventory.inventory_page"))
 
 
 # -----------------------------
@@ -190,7 +190,7 @@ def stock_in():
 
     except Exception as e:
         flash(f"Invalid input: {str(e)}", "danger")
-        return redirect("/portal/inventory")
+        return redirect(url_for("inventory.inventory_page"))
 
     con = get_db()
     cur = con.cursor(cursor_factory=RealDictCursor)
@@ -217,7 +217,7 @@ def stock_in():
             doctor_id = data.get("doctor_id")
             if not doctor_id:
                 flash("Doctor is required for stock OUT", "danger")
-                return redirect("/portal/inventory")
+                return redirect(url_for("inventory.inventory_page"))
 
             cur.execute("""
                 SELECT quantity_available
@@ -229,7 +229,7 @@ def stock_in():
 
             if not current or current["quantity_available"] < quantity:
                 flash("Not enough stock available", "danger")
-                return redirect("/portal/inventory")
+                return redirect(url_for("inventory.inventory_page"))
 
             cur.execute("""
                 INSERT INTO stock_out (lens_id, power, quantity, user_id, doctor_id, delivery_date)
@@ -244,7 +244,7 @@ def stock_in():
 
         else:
             flash("Invalid transaction type", "danger")
-            return redirect("/portal/inventory")
+            return redirect(url_for("inventory.inventory_page"))
 
         con.commit()
         flash("Transaction processed successfully!", "success")
@@ -256,7 +256,7 @@ def stock_in():
         cur.close()
         con.close()
 
-    return redirect("/portal/inventory#inventory-levels")
+    return redirect(url_for("inventory.inventory_page") + "#inventory-levels")
 
 
 # -----------------------------
