@@ -27,14 +27,14 @@ init_db()
 def home():
     return render_template("home.html")
 
-@app.route("/portal/admin")
+@app.route("/admin")
 def admin_dashboard():
     user = g.get("user")
     if not user or user.get("role") != "admin":
         return redirect(url_for("auth.login"))
     return render_template("admin_dashboard.html")
 
-@app.route("/portal/team")
+@app.route("/team")
 def team_dashboard():
     user = g.get("user")
     if not user or user.get("role") != "team":
