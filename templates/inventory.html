@@ -1,330 +1,507 @@
-# inventory_routes.py
-from flask import Blueprint, request, jsonify, render_template, redirect, g, url_for, flash
-import sqlite3
-from inventory_db import get_db
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Inventory Management | Ramay Electromedics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-inventory_bp = Blueprint("inventory", __name__, url_prefix="/inventory")
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #2563eb;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #166534;
+            --danger: #991b1b;
+        }
 
+        * { box-sizing: border-box; }
 
-@inventory_bp.route("/add-lens", methods=["POST"])
-def add_lens():
-    if not g.user:
-        return redirect(url_for("auth.login"))
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 15px;
+            color: var(--text-dark);
+            line-height: 1.5;
+        }
 
-    name = request.form.get("name", "").strip()
-    if not name:
-        flash("Lens name is required", "danger")
-        return redirect("/portal/inventory")
+        .container { max-width: 1200px; margin: 0 auto; }
 
-    con = get_db()
-    cur = con.cursor()
+        h1 { color: var(--primary); font-size: 24px; margin-bottom: 5px; }
+        .subtitle { color: var(--text-muted); margin-bottom: 25px; font-size: 13px; }
 
-    cur.execute("SELECT id FROM lenses WHERE name = ?", (name,))
-    if cur.fetchone():
-        flash("Lens already exists", "danger")
-        con.close()
-        return redirect("/portal/inventory")
+        section {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
 
-    cur.execute("INSERT INTO lenses (name) VALUES (?)", (name,))
-    con.commit()
-    con.close()
+        .alert-danger {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #f87171;
+        }
 
-    flash("Lens added successfully!", "success")
-    return redirect("/portal/inventory")
+        .alert-success {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #4ade80;
+        }
 
-@inventory_bp.route("/add-doctor", methods=["POST"])
-def add_doctor():
-    if not g.user:
-        return redirect(url_for("auth.login"))
+        h2 {
+            color: var(--primary);
+            font-size: 17px;
+            margin-top: 0;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-    name = request.form.get("name", "").strip()
+        .form-grid, .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
 
-    if not name:
-        flash("Doctor name is required", "danger")
-        return redirect("/portal/inventory")
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
 
-    con = get_db()
-    cur = con.cursor()
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
 
-    cur.execute("SELECT id FROM doctors WHERE name = ?", (name,))
-    existing = cur.fetchone()
+        button:hover { background: var(--secondary); }
 
-    if existing:
-        flash("Doctor already exists!", "danger")
-        con.close()
-        return redirect("/portal/inventory")
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
 
-    try:
-        cur.execute("INSERT INTO doctors (name) VALUES (?)", (name,))
-        con.commit()
-        flash("Doctor added successfully!", "success")
-    except Exception as e:
-        con.rollback()
-        flash(f"Error: {str(e)}", "danger")
-    finally:
-        con.close()
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            background: #f8fafc;
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 12px;
+            border-bottom: 2px solid var(--border);
+        }
+        td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
 
-    return redirect("/portal/inventory")
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .badge-in { background: #dcfce7; color: var(--success); }
+        .badge-out { background: #fee2e2; color: var(--danger); }
 
+        @media (max-width: 600px) {
+            .form-grid, .filter-row {
+                grid-template-columns: 1fr;
+            }
 
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
 
-@inventory_bp.route("/")
-def inventory_page():
-    if not g.user:
-        return jsonify({"error": "Unauthorized"}), 403
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
 
-    con = get_db()
-    cur = con.cursor()
+            tr {
+                border: 1px solid var(--border);
+                margin-bottom: 10px;
+                border-radius: 8px;
+                padding: 5px;
+            }
 
-    selected_lens = request.args.get("lens_id")
-    selected_power = request.args.get("power")
+            td {
+                border: none;
+                border-bottom: 1px solid #eee;
+                position: relative;
+                padding-left: 50%;
+                text-align: right;
+            }
 
-    cur.execute("SELECT id, name FROM lenses ORDER BY name")
-    lenses = cur.fetchall()
+            td:last-child { border-bottom: none; }
 
-    cur.execute("SELECT id, name FROM doctors ORDER BY name")
-    doctors = cur.fetchall()
+            td:before {
+                position: absolute;
+                left: 12px;
+                width: 45%;
+                padding-right: 10px;
+                white-space: nowrap;
+                text-align: left;
+                font-weight: bold;
+                color: var(--text-muted);
+                content: attr(data-label);
+            }
+        }
+    </style>
+</head>
+<body>
 
-    # Current stock
-    query = """
-        SELECT l.id, l.name, s.power, s.quantity_available
-        FROM inventory_stock s
-        JOIN lenses l ON l.id = s.lens_id
-    """
-    conditions = []
-    params = []
+<div class="container">
 
-    if selected_lens:
-        conditions.append("l.id = ?")
-        params.append(selected_lens)
-    if selected_power:
-        conditions.append("s.power = ?")
-        params.append(selected_power)
+    <!-- TOP BAR + LOGOUT -->
+    {% if user and user.role == 'team' %}
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <div>
+            <h1 style="margin:0;">Inventory Management</h1>
+            <div class="subtitle">Ophthalmic lens stock control & delivery tracking</div>
+        </div>
 
-    if conditions:
-        query += " WHERE " + " AND ".join(conditions)
+        <a href="{{ url_for('auth.logout') }}" style="text-decoration:none;">
+            <button type="button" style="background:#991b1b; padding:10px 18px;">
+                Logout
+            </button>
+        </a>
+    </div>
+    {% endif %}
 
-    query += " ORDER BY l.name, s.power COLLATE NOCASE"
+    <!-- FLASH MESSAGES -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+        <div class="{% if category == 'danger' %}alert-danger{% else %}alert-success{% endif %}">
+            <strong>Alert!</strong> {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
 
-    cur.execute(query, params)
-    stock = cur.fetchall()
+    <script>
+    setTimeout(() => {
+        document.querySelectorAll('.alert-danger, .alert-success')
+            .forEach(el => el.remove());
+    }, 5000);
+    </script>
 
-    # Recent transactions — explicit column order to match template
-    recent_query = """
-    SELECT
-        lens_name,
-        power,
-        doctor_name,
-        quantity,
-        action,
-        date_time
-    FROM (
-        SELECT 
-            l.name AS lens_name,
-            si.power,
-            NULL AS doctor_name,
-            si.quantity,
-            'IN' AS action,
-            si.created_at AS date_time
-        FROM stock_in si
-        JOIN lenses l ON l.id = si.lens_id
+    <!-- ──────────────────────────────────────────────── -->
+    <!--                  ADMIN ONLY SECTIONS             -->
+    <!-- ──────────────────────────────────────────────── -->
 
-        UNION ALL
+    {% if user and user.role == 'admin' %}
+    <section>
+        <h2>Register New Lens</h2>
+        <form class="form-grid" method="POST" action="/inventory/add-lens">
+            <input type="text" name="name" placeholder="Enter Lens Name (e.g. Rohoto)" required>
+            <button type="submit">Add to Database</button>
+        </form>
+    </section>
 
-        SELECT
-            l.name AS lens_name,
-            so.power,
-            d.name AS doctor_name,
-            so.quantity,
-            'OUT' AS action,
-            so.created_at AS date_time
-        FROM stock_out so
-        JOIN lenses l ON l.id = so.lens_id
-        LEFT JOIN doctors d ON d.id = so.doctor_id
-    )
-    ORDER BY date_time DESC
-    LIMIT 50
-    """
+    <section>
+        <h2>Add Doctor / Hospital</h2>
+        <form class="form-grid" method="POST" action="/inventory/add-doctor">
+            <input type="text" name="name" placeholder="Enter Doctor Name" required>
+            <button type="submit">Add Doctor</button>
+        </form>
+    </section>
+    {% endif %}
 
-    cur.execute(recent_query)
-    recent = cur.fetchall()
+    <!-- ──────────────────────────────────────────────── -->
+    <!--            STOCK ENTRY (admin + team)            -->
+    <!-- ──────────────────────────────────────────────── -->
 
-    # Staff Delivery Activity — only team members
-    cur.execute("""
-        SELECT 
-            username,
-            lens_name,
-            power,
-            quantity,
-            created_at,
-            doctor_name,
-            action
-        FROM (
-            -- STOCK IN (ONLY TEAM)
-            SELECT
-                u.username AS username,
-                l.name AS lens_name,
-                si.power AS power,
-                si.quantity AS quantity,
-                si.created_at AS created_at,
-                NULL AS doctor_name,
-                'IN' AS action
-            FROM stock_in si
-            JOIN lenses l ON l.id = si.lens_id
-            JOIN users u ON u.id = si.added_by
-            WHERE u.role = 'team'
+    {% if user and user.role in ['admin', 'team'] %}
+    <section>
+        <h2>Stock Entry & Movement</h2>
+        <form class="form-grid" method="post" action="/inventory/stock-in">
 
-            UNION ALL
+            <select name="doctor_id">
+                <option value="">Select Doctor (Optional)</option>
+                {% for d in doctors %}
+                    <option value="{{ d['id'] }}">{{ d['name'] }}</option>
+                {% endfor %}
+            </select>
 
-            -- STOCK OUT (ONLY TEAM)
-            SELECT
-                u.username AS username,
-                l.name AS lens_name,
-                so.power AS power,
-                so.quantity AS quantity,
-                so.created_at AS created_at,
-                d.name AS doctor_name,
-                'OUT' AS action
-            FROM stock_out so
-            JOIN lenses l ON l.id = so.lens_id
-            JOIN users u ON u.id = so.user_id
-            LEFT JOIN doctors d ON d.id = so.doctor_id
-            WHERE u.role = 'team'
-        )
-        ORDER BY created_at DESC
-    """)
-    employee_log = cur.fetchall()
+            <select name="lens_id" required>
+                <option value="">Select Lens Brand</option>
+                {% for l in lenses %}
+                    <option value="{{ l['id'] }}">{{ l['name'] }}</option>
+                {% endfor %}
+            </select>
 
-    print("STAFF DATA:", employee_log)
+            <input name="power" placeholder="Power" required>
+            <input type="number" name="quantity" placeholder="Quantity" min="1" required>
 
-    # Debug print — keep this for now; remove later when stable
-    print("\n=== DEBUG: Recent transactions ===")
-    if recent:
-        first = recent[0]
-        print("Row type:", type(first).__name__)
-        print("Has keys attribute:", hasattr(first, 'keys'))
-        if hasattr(first, 'keys'):
-            print("Keys:", list(first.keys()))
-            print("Sample row dict:", dict(first))
-            print("Quantity value:", first["quantity"])
-        else:
-            print("Row as tuple:", tuple(first))
-            print("Quantity (position 3):", first[3])
-    else:
-        print("No recent rows")
-    print("===================================\n")
+            <select name="type" required>
+                <option value="">Select Action</option>
+                <option value="IN">Stock In (+)</option>
+                <option value="OUT">Stock Out (-)</option>
+            </select>
 
-    con.close()
+            <button type="submit">Process Transaction</button>
+        </form>
+    </section>
+    {% endif %}
 
-    return render_template(
-        "inventory.html",
-        user=g.user,
-        lenses=lenses,
-        doctors=doctors,
-        stock=stock,
-        recent=recent,
-        employee_log=employee_log
-    )
+    <!-- ──────────────────────────────────────────────── -->
+    <!--               CURRENT INVENTORY                  -->
+    <!-- ──────────────────────────────────────────────── -->
 
+    <section id="inventory-levels">
+        <h2>Current Inventory Levels</h2>
 
-@inventory_bp.route("/stock-in", methods=["POST"])
-def stock_in():
-    if not g.user:
-        return jsonify({"error": "Unauthorized"}), 403
+        <form class="filter-row" method="GET" action="/inventory#inventory-levels">
+            <select name="lens_id">
+                <option value="">All Lenses</option>
+                {% for l in lenses %}
+                    <option value="{{ l['id'] }}"
+                    {% if request.args.get('lens_id') == l['id']|string %}selected{% endif %}>
+                    {{ l['name'] }}
+                </option>
+                {% endfor %}
+            </select>
 
-    data = request.form
-    try:
-        lens_id = int(data.get("lens_id"))
-        power = data.get("power", "").strip()
-        quantity = int(data.get("quantity"))
-        transaction_type = data.get("type", "IN").upper()
-        if quantity <= 0:
-            raise ValueError("Quantity must be positive")
-    except (ValueError, TypeError) as e:
-        flash(f"Invalid input: {str(e)}", "danger")
-        return redirect("/portal/inventory")
+            <input name="power" placeholder="Filter by Power" value="{{ request.args.get('power', '') }}">
 
-    con = get_db()
-    cur = con.cursor()
+            <button type="submit" style="background: var(--secondary); min-width: 80px;">
+                Filter
+            </button>
+        </form>
 
-    try:
-        if transaction_type == "IN":
-            cur.execute("""
-                INSERT INTO stock_in (lens_id, power, quantity, added_by)
-                VALUES (?, ?, ?, ?)
-            """, (lens_id, power, quantity, g.user["id"]))
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Lens Brand</th>
+                        <th>Power</th>
+                        <th>Available Quantity</th>
+                    </tr>
+                </thead>
+<tbody>
+    {% if stock %}
+        {% for s in stock %}
+        <tr>
+            <td data-label="Lens Brand"><strong>{{ s['name'] }}</strong></td>
+            <td data-label="Power">{{ s['power'] }}</td>
+            <td data-label="Available Quantity">{{ s['quantity_available'] }} units</td>
+        </tr>
+        {% endfor %}
+    {% else %}
+        <tr>
+            <td colspan="3" style="text-align:center; padding:40px; color:var(--text-muted);">
+                No stock entries found
+            </td>
+        </tr>
+    {% endif %}
+</tbody>
+            </table>
+        </div>
+    </section>
 
-            cur.execute("""
-                INSERT INTO inventory_stock (lens_id, power, quantity_available)
-                VALUES (?, ?, ?)
-                ON CONFLICT(lens_id, power)
-                DO UPDATE SET quantity_available = quantity_available + excluded.quantity_available
-            """, (lens_id, power, quantity))
+    <!-- ──────────────────────────────────────────────── -->
+    <!--              RECENT TRANSACTIONS (admin)         -->
+    <!-- ──────────────────────────────────────────────── -->
 
-        elif transaction_type == "OUT":
-            doctor_id = data.get("doctor_id")
-            if not doctor_id:
-                flash("Doctor is required for stock OUT", "danger")
-                return redirect("/portal/inventory")
+    {% if user and user.role == 'admin' %}
+    <section id="recent-section">
+        <h2>Recent Transactions</h2>
 
-            # Safety check: enough stock?
-            cur.execute("""
-                SELECT quantity_available FROM inventory_stock 
-                WHERE lens_id = ? AND power = ?
-            """, (lens_id, power))
-            current = cur.fetchone()
-            if not current or current["quantity_available"] < quantity:
-                flash("Not enough stock available", "danger")
-                return redirect("/portal/inventory")
+        <form class="filter-row" method="GET" action="/inventory#recent-section">
+            <select name="rt_lens_id">
+                <option value="">All Brands</option>
+           {% for l in lenses %}
+    <option value="{{ l['id'] }}"
+        {% if request.args.get('rt_lens_id') == l['id']|string %}selected{% endif %}>
+        {{ l['name'] }}
+    </option>
+{% endfor %}
+            </select>
 
-            cur.execute("""
-                INSERT INTO stock_out (lens_id, power, quantity, user_id, doctor_id, delivery_date)
-                VALUES (?, ?, ?, ?, ?, DATE('now'))
-            """, (lens_id, power, quantity, g.user["id"], doctor_id))
+            <select name="rt_doc_id">
+                <option value="">All Doctors</option>
+        {% for d in doctors %}
+    <option value="{{ d['id'] }}"
+        {% if request.args.get('rt_doc_id') == d['id']|string %}selected{% endif %}>
+        {{ d['name'] }}
+    </option>
+{% endfor %}
+            </select>
 
-            cur.execute("""
-                UPDATE inventory_stock
-                SET quantity_available = quantity_available - ?
-                WHERE lens_id = ? AND power = ?
-            """, (quantity, lens_id, power))
+            <input name="rt_power" placeholder="Power" value="{{ request.args.get('rt_power','') }}">
 
-        else:
-            flash("Invalid transaction type (must be IN or OUT)", "danger")
-            return redirect("/portal/inventory")
+            <select name="rt_type">
+                <option value="">All Types</option>
+                <option value="IN" {% if request.args.get('rt_type') == 'IN' %}selected{% endif %}>Stock In (+)</option>
+                <option value="OUT" {% if request.args.get('rt_type') == 'OUT' %}selected{% endif %}>Stock Out (-)</option>
+            </select>
 
-        con.commit()
-        flash(f"{transaction_type} transaction processed successfully!", "success")
+            <input type="date" name="rt_date" value="{{ request.args.get('rt_date','') }}">
 
-    except Exception as e:
-        con.rollback()
-        flash(f"Transaction failed: {str(e)}", "danger")
-    finally:
-        con.close()
+            <button type="submit" style="background: var(--secondary); min-width: 100px;">
+                Apply Filter
+            </button>
+        </form>
 
-    return redirect("/portal/inventory#inventory-levels")
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Lens Brand</th>
+                        <th>Power</th>
+                        <th>Doctor</th>
+                        <th>Qty</th>
+                        <th>Action</th>
+                        <th>Date Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if recent %}
+                        {% for r in recent %}
+                        <tr>
+                            <td data-label="Lens Brand"><strong>{{ r["lens_name"] }}</strong></td>
+                            <td data-label="Power">{{ r["power"] }}</td>
+                            <td data-label="Doctor">{{ r["doctor_name"] or 'N/A' }}</td>
+                            <td data-label="Qty">{{ r["quantity"] }}</td>
+                            <td data-label="Action">
+                                <span class="badge {% if r["action"] == 'IN' %}badge-in{% else %}badge-out{% endif %}">
+                                    {{ r["action"] }}
+                                </span>
+                            </td>
+                            <td data-label="Date Time">{{ r["date_time"] }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);">
+                                No recent transactions found
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </section>
 
+    <!-- ──────────────────────────────────────────────── -->
+    <!--             STAFF DELIVERY ACTIVITY (admin)      -->
+    <!-- ──────────────────────────────────────────────── -->
 
-@inventory_bp.route("/api/stock")
-def view_stock():
-    con = get_db()
-    cur = con.cursor()
-    try:
-        cur.execute("""
-            SELECT l.name, l.brand, s.power, s.quantity_available, s.reorder_level
-            FROM inventory_stock s
-            JOIN lenses l ON l.id = s.lens_id
-            ORDER BY l.name, s.power
-        """)
-        rows = cur.fetchall()
+    <section id="staff-delivery">
+        <h2>Staff Delivery Activity</h2>
 
-        return jsonify([
-            {
-                "lens": r["name"],
-                "brand": r["brand"] or "N/A",
-                "power": r["power"],
-                "quantity": r["quantity_available"],
-                "reorder": r["reorder_level"]
-            } for r in rows
-        ])
-    finally:
-        con.close()
+        <form class="filter-row" method="GET" action="/inventory#staff-delivery">
+            <select name="emp">
+                <option value="">All Staff</option>
+                {% for e in employee_log | map(attribute='username') | unique %}
+                    <option value="{{ e }}"
+                        {% if request.args.get('emp') == e %}selected{% endif %}>
+                        {{ e }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select name="emp_doc">
+    <option value="">All Doctors</option>
+    {% for d in doctors %}
+        <option value="{{ d['id'] }}"
+            {% if request.args.get('emp_doc') == d['id']|string %}selected{% endif %}>
+            {{ d['name'] }}
+        </option>
+    {% endfor %}
+</select>
+
+<select name="emp_lens">
+    <option value="">All Lenses</option>
+    {% for l in lenses %}
+        <option value="{{ l['id'] }}"
+            {% if request.args.get('emp_lens') == l['id']|string %}selected{% endif %}>
+            {{ l['name'] }}
+        </option>
+    {% endfor %}
+</select>
+
+            <input type="date" name="emp_date" value="{{ request.args.get('emp_date','') }}">
+
+            <button type="submit" style="background: var(--secondary); min-width: 80px;">Search</button>
+        </form>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Lens Details</th>
+                        <th>Doctor</th>
+                        <th>Power</th>
+                        <th>Quantity</th>
+                        <th>Action</th>
+                        <th>Handover Date</th>
+                    </tr>
+                </thead>
+<tbody>
+    {% if employee_log %}
+        {% for e in employee_log %}
+        <tr>
+            <td data-label="Employee">{{ e['username'] }}</td>
+            <td data-label="Lens Details">{{ e['lens_name'] }}</td>
+            <td data-label="Doctor">{{ e['doctor_name'] or 'N/A' }}</td>
+            <td data-label="Power">{{ e['power'] }}</td>
+            <td data-label="Quantity">{{ e['quantity'] }}</td>
+            <td data-label="Action">
+                <span class="badge badge-out">{{ e['action'] }}</span>
+            </td>
+            <td data-label="Handover Date">{{ e['created_at'] }}</td>
+        </tr>
+        {% endfor %}
+    {% else %}
+        <tr>
+            <td colspan="7" style="text-align:center; padding:40px; color:var(--text-muted);">
+                No deliveries found
+            </td>
+        </tr>
+    {% endif %}
+</tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Admin Dashboard Link -->
+    <div style="margin-top: 40px; text-align: center; padding-bottom: 20px;">
+        <hr style="border: 0; border-top: 1px solid var(--border); margin-bottom: 20px;">
+        <a href="{{ url_for('admin_dashboard') }}" style="text-decoration: none;">
+            <button type="button" style="background: var(--text-muted); min-width: 200px;">
+                Go to Admin Dashboard
+            </button>
+        </a>
+    </div>
+    {% endif %}
+
+</div>
+</body>
+</html>
