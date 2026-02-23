@@ -94,24 +94,18 @@ def inventory_page():
         selected_lens = request.args.get("lens_id")
         selected_power = request.args.get("power")
 
-        # ----------------------------
-        # Lenses & Doctors
-        # ----------------------------
         cur.execute("SELECT id, name FROM lenses ORDER BY name")
         lenses = cur.fetchall()
 
         cur.execute("SELECT id, name FROM doctors ORDER BY name")
         doctors = cur.fetchall()
 
-        # ----------------------------
-        # Current Stock
-        # ----------------------------
+        # Stock Query
         query = """
             SELECT l.id, l.name, s.power, s.quantity_available
             FROM inventory_stock s
             JOIN lenses l ON l.id = s.lens_id
         """
-
         conditions = []
         params = []
 
@@ -131,9 +125,7 @@ def inventory_page():
         cur.execute(query, params)
         stock = cur.fetchall()
 
-        # ----------------------------
         # Recent Transactions
-        # ----------------------------
         cur.execute("""
             SELECT
                 l.name AS lens_name,
@@ -163,29 +155,19 @@ def inventory_page():
         """)
         recent = cur.fetchall()
 
-        # ----------------------------
-        # Staff Delivery Activity
-        # ----------------------------
-        # Staff Delivery Activity
-        cur.execute("""
-    SELECT *
-    FROM employee_deliveries
-""")
-        employee_log = cur.fetchall()
-
         return render_template(
             "inventory.html",
             user=g.user,
             lenses=lenses,
             doctors=doctors,
             stock=stock,
-            recent=recent,
-            employee_log=employee_log
+            recent=recent
         )
 
     finally:
         cur.close()
         con.close()
+
 
 # -----------------------------
 # STOCK IN / OUT
