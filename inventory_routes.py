@@ -94,18 +94,24 @@ def inventory_page():
         selected_lens = request.args.get("lens_id")
         selected_power = request.args.get("power")
 
+        # ----------------------------
+        # Lenses & Doctors
+        # ----------------------------
         cur.execute("SELECT id, name FROM lenses ORDER BY name")
         lenses = cur.fetchall()
 
         cur.execute("SELECT id, name FROM doctors ORDER BY name")
         doctors = cur.fetchall()
 
-        # Stock Query
+        # ----------------------------
+        # Current Stock
+        # ----------------------------
         query = """
             SELECT l.id, l.name, s.power, s.quantity_available
             FROM inventory_stock s
             JOIN lenses l ON l.id = s.lens_id
         """
+
         conditions = []
         params = []
 
@@ -125,7 +131,9 @@ def inventory_page():
         cur.execute(query, params)
         stock = cur.fetchall()
 
+        # ----------------------------
         # Recent Transactions
+        # ----------------------------
         cur.execute("""
             SELECT
                 l.name AS lens_name,
@@ -155,19 +163,39 @@ def inventory_page():
         """)
         recent = cur.fetchall()
 
+        # ----------------------------
+        # Staff Delivery Activity
+        # ----------------------------
+        cur.execute("""
+            SELECT 
+                ed.username,
+                l.name AS lens_name,
+                d.name AS doctor_name,
+                ed.power,
+                ed.quantity,
+                ed.action,
+                ed.created_at
+            FROM employee_deliveries ed
+            JOIN lenses l ON l.id = ed.lens_id
+            LEFT JOIN doctors d ON d.id = ed.doctor_id
+            ORDER BY ed.created_at DESC
+            LIMIT 50
+        """)
+        employee_log = cur.fetchall()
+
         return render_template(
             "inventory.html",
             user=g.user,
             lenses=lenses,
             doctors=doctors,
             stock=stock,
-            recent=recent
+            recent=recent,
+            employee_log=employee_log
         )
 
     finally:
         cur.close()
         con.close()
-
 
 # -----------------------------
 # STOCK IN / OUT
