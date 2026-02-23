@@ -235,6 +235,18 @@ def stock_in():
                 INSERT INTO stock_out (lens_id, power, quantity, user_id, doctor_id, delivery_date)
                 VALUES (%s, %s, %s, %s, %s, CURRENT_DATE)
             """, (lens_id, power, quantity, g.user['id'], doctor_id))
+            cur.execute("""
+    INSERT INTO employee_deliveries
+    (username, lens_id, doctor_id, power, quantity, action, created_at)
+    VALUES (%s, %s, %s, %s, %s, %s, NOW())
+""", (
+    g.user["username"],
+    lens_id,
+    doctor_id,
+    power,
+    quantity,
+    "OUT"
+))
 
             cur.execute("""
                 UPDATE inventory_stock
