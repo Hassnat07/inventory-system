@@ -166,21 +166,11 @@ def inventory_page():
         # ----------------------------
         # Staff Delivery Activity
         # ----------------------------
+        # Staff Delivery Activity
         cur.execute("""
-            SELECT 
-                ed.username,
-                l.name AS lens_name,
-                d.name AS doctor_name,
-                ed.power,
-                ed.quantity,
-                ed.action,
-                ed.created_at
-            FROM employee_deliveries ed
-            JOIN lenses l ON l.id = ed.lens_id
-            LEFT JOIN doctors d ON d.id = ed.doctor_id
-            ORDER BY ed.created_at DESC
-            LIMIT 50
-        """)
+    SELECT *
+    FROM employee_deliveries
+""")
         employee_log = cur.fetchall()
 
         return render_template(
