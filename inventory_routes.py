@@ -182,7 +182,10 @@ def inventory_page():
             recent=recent,
             staff_deliveries=staff_deliveries
         )
-        # -----------------------------
+    finally:
+        cur.close()
+        con.close()
+
 # STAFF DELIVERY ACTIVITY
 # -----------------------------
 
