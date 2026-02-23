@@ -43,7 +43,6 @@ def add_doctor():
         return redirect(url_for("auth.login"))
 
     name = request.form.get("name", "").strip()
-
     if not name:
         flash("Doctor name is required", "danger")
         return redirect(url_for("inventory.inventory_page"))
@@ -113,7 +112,7 @@ def inventory_page():
         cur.execute(query, params)
         stock = cur.fetchall()
 
-        # Recent transactions
+        # Recent transactions (last 50)
         recent_query = """
         SELECT
             lens_name,
@@ -153,7 +152,7 @@ def inventory_page():
         cur.execute(recent_query)
         recent = cur.fetchall()
 
-        # Staff Delivery Activity — only team members
+        # Staff activity log (only team role)
         cur.execute("""
             SELECT 
                 username,
@@ -164,7 +163,6 @@ def inventory_page():
                 doctor_name,
                 action
             FROM (
-                -- STOCK IN (ONLY TEAM)
                 SELECT
                     u.username AS username,
                     l.name AS lens_name,
@@ -180,7 +178,6 @@ def inventory_page():
 
                 UNION ALL
 
-                -- STOCK OUT (ONLY TEAM)
                 SELECT
                     u.username AS username,
                     l.name AS lens_name,
@@ -220,13 +217,16 @@ def stock_in():
         return jsonify({"error": "Unauthorized"}), 403
 
     data = request.form
+
     try:
-        lens_id = int(data.get("lens_id"))
-        power = data.get("power", "").strip()
-        quantity = int(data.get("quantity"))
-        transaction_type = data.get("type", "IN").upper()
+        lens_id   = int(data.get("lens_id"))
+        power     = data.get("power", "").strip()
+        quantity  = int(data.get("quantity"))
+        trans_type = data.get("type", "IN").upper()
+
         if quantity <= 0:
             raise ValueError("Quantity must be positive")
+
     except (ValueError, TypeError) as e:
         flash(f"Invalid input: {str(e)}", "danger")
         return redirect(url_for("inventory.inventory_page"))
@@ -235,7 +235,7 @@ def stock_in():
     cur = con.cursor(cursor_factory=RealDictCursor)
 
     try:
-        if transaction_type == "IN":
+        if trans_type == "IN":
             cur.execute("""
                 INSERT INTO stock_in (lens_id, power, quantity, added_by)
                 VALUES (%s, %s, %s, %s)
@@ -248,7 +248,7 @@ def stock_in():
                 DO UPDATE SET quantity_available = inventory_stock.quantity_available + EXCLUDED.quantity_available
             """, (lens_id, power, quantity))
 
-        elif transaction_type == "OUT":
+        elif trans_type == "OUT":
             doctor_id = data.get("doctor_id")
             if not doctor_id:
                 flash("Doctor is required for stock OUT", "danger")
@@ -259,6 +259,7 @@ def stock_in():
                 WHERE lens_id = %s AND power = %s
             """, (lens_id, power))
             current = cur.fetchone()
+
             if not current or current["quantity_available"] < quantity:
                 flash("Not enough stock available", "danger")
                 return redirect(url_for("inventory.inventory_page"))
@@ -279,11 +280,12 @@ def stock_in():
             return redirect(url_for("inventory.inventory_page"))
 
         con.commit()
-        flash(f"{transaction_type} transaction processed successfully!", "success")
+        flash(f"{trans_type} transaction processed successfully!", "success")
 
     except Exception as e:
         con.rollback()
         flash(f"Transaction failed: {str(e)}", "danger")
+
     finally:
         cur.close()
         con.close()
@@ -307,12 +309,13 @@ def view_stock():
 
         return jsonify([
             {
-                "lens": r["name"],
-                "brand": r["brand"] or "N/A",
-                "power": r["power"],
+                "lens":     r["name"],
+                "brand":    r["brand"] or "N/A",
+                "power":    r["power"],
                 "quantity": r["quantity_available"],
-                "reorder": r["reorder_level"]
-            } for r in rows
+                "reorder":  r["reorder_level"]
+            }
+            for r in rows
         ])
 
     finally:
