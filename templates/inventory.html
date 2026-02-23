@@ -244,14 +244,14 @@
             <select name="doctor_id">
                 <option value="">Select Doctor (Optional)</option>
                 {% for d in doctors %}
-                    <option value="{{ d[0] }}">{{ d[1] }}</option>
+                    <option value="{{ d['id'] }}">{{ d['name'] }}</option>
                 {% endfor %}
             </select>
 
             <select name="lens_id" required>
                 <option value="">Select Lens Brand</option>
                 {% for l in lenses %}
-                    <option value="{{ l[0] }}">{{ l[1] }}</option>
+                    <option value="{{ l['id'] }}">{{ l['name'] }}</option>
                 {% endfor %}
             </select>
 
@@ -280,7 +280,10 @@
             <select name="lens_id">
                 <option value="">All Lenses</option>
                 {% for l in lenses %}
-                    <option value="{{ l[0] }}" {% if request.args.get('lens_id') == l[0]|string %}selected{% endif %}>{{ l[1] }}</option>
+                    <option value="{{ l['id'] }}"
+                    {% if request.args.get('lens_id') == l['id']|string %}selected{% endif %}>
+                    {{ l['name'] }}
+                </option>
                 {% endfor %}
             </select>
 
@@ -300,21 +303,23 @@
                         <th>Available Quantity</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {% for s in stock %}
-                    <tr>
-                        <td data-label="Lens Brand"><strong>{{ s[1] }}</strong></td>
-                        <td data-label="Power">{{ s[2] }}</td>
-                        <td data-label="Available Quantity">{{ s[3] }} units</td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="3" style="text-align:center; padding:40px; color:var(--text-muted);">
-                            No stock entries found
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
+<tbody>
+    {% if stock %}
+        {% for s in stock %}
+        <tr>
+            <td data-label="Lens Brand"><strong>{{ s['name'] }}</strong></td>
+            <td data-label="Power">{{ s['power'] }}</td>
+            <td data-label="Available Quantity">{{ s['quantity_available'] }} units</td>
+        </tr>
+        {% endfor %}
+    {% else %}
+        <tr>
+            <td colspan="3" style="text-align:center; padding:40px; color:var(--text-muted);">
+                No stock entries found
+            </td>
+        </tr>
+    {% endif %}
+</tbody>
             </table>
         </div>
     </section>
@@ -330,22 +335,22 @@
         <form class="filter-row" method="GET" action="/inventory#recent-section">
             <select name="rt_lens_id">
                 <option value="">All Brands</option>
-                {% for l in lenses %}
-                    <option value="{{ l[0] }}"
-                        {% if request.args.get('rt_lens_id') == l[0]|string %}selected{% endif %}>
-                        {{ l[1] }}
-                    </option>
-                {% endfor %}
+           {% for l in lenses %}
+    <option value="{{ l['id'] }}"
+        {% if request.args.get('rt_lens_id') == l['id']|string %}selected{% endif %}>
+        {{ l['name'] }}
+    </option>
+{% endfor %}
             </select>
 
             <select name="rt_doc_id">
                 <option value="">All Doctors</option>
-                {% for d in doctors %}
-                    <option value="{{ d[0] }}"
-                        {% if request.args.get('rt_doc_id') == d[0]|string %}selected{% endif %}>
-                        {{ d[1] }}
-                    </option>
-                {% endfor %}
+        {% for d in doctors %}
+    <option value="{{ d['id'] }}"
+        {% if request.args.get('rt_doc_id') == d['id']|string %}selected{% endif %}>
+        {{ d['name'] }}
+    </option>
+{% endfor %}
             </select>
 
             <input name="rt_power" placeholder="Power" value="{{ request.args.get('rt_power','') }}">
@@ -413,7 +418,7 @@
         <form class="filter-row" method="GET" action="/inventory#staff-delivery">
             <select name="emp">
                 <option value="">All Staff</option>
-                {% for e in employee_log | map(attribute=0) | unique %}
+                {% for e in employee_log | map(attribute='username') | unique %}
                     <option value="{{ e }}"
                         {% if request.args.get('emp') == e %}selected{% endif %}>
                         {{ e }}
@@ -422,24 +427,24 @@
             </select>
 
             <select name="emp_doc">
-                <option value="">All Doctors</option>
-                {% for d in doctors %}
-                    <option value="{{ d[0] }}"
-                        {% if request.args.get('emp_doc') == d[0]|string %}selected{% endif %}>
-                        {{ d[1] }}
-                    </option>
-                {% endfor %}
-            </select>
+    <option value="">All Doctors</option>
+    {% for d in doctors %}
+        <option value="{{ d['id'] }}"
+            {% if request.args.get('emp_doc') == d['id']|string %}selected{% endif %}>
+            {{ d['name'] }}
+        </option>
+    {% endfor %}
+</select>
 
-            <select name="emp_lens">
-                <option value="">All Lenses</option>
-                {% for l in lenses %}
-                    <option value="{{ l[0] }}"
-                        {% if request.args.get('emp_lens') == l[0]|string %}selected{% endif %}>
-                        {{ l[1] }}
-                    </option>
-                {% endfor %}
-            </select>
+<select name="emp_lens">
+    <option value="">All Lenses</option>
+    {% for l in lenses %}
+        <option value="{{ l['id'] }}"
+            {% if request.args.get('emp_lens') == l['id']|string %}selected{% endif %}>
+            {{ l['name'] }}
+        </option>
+    {% endfor %}
+</select>
 
             <input type="date" name="emp_date" value="{{ request.args.get('emp_date','') }}">
 
@@ -459,27 +464,29 @@
                         <th>Handover Date</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {% for e in employee_log %}
-                    <tr>
-                        <td data-label="Employee">{{ e[0] }}</td>
-                        <td data-label="Lens Details">{{ e[1] }}</td>
-                        <td data-label="Doctor">{{ e[5] or 'N/A' }}</td>
-                        <td data-label="Power">{{ e[2] }}</td>
-                        <td data-label="Quantity">{{ e[3] }}</td>
-                        <td data-label="Action">
-                            <span class="badge badge-out">{{ e[6] }}</span>
-                        </td>
-                        <td data-label="Handover Date">{{ e[4] }}</td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="7" style="text-align:center; padding:40px; color:var(--text-muted);">
-                            No deliveries found
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
+<tbody>
+    {% if employee_log %}
+        {% for e in employee_log %}
+        <tr>
+            <td data-label="Employee">{{ e['username'] }}</td>
+            <td data-label="Lens Details">{{ e['lens_name'] }}</td>
+            <td data-label="Doctor">{{ e['doctor_name'] or 'N/A' }}</td>
+            <td data-label="Power">{{ e['power'] }}</td>
+            <td data-label="Quantity">{{ e['quantity'] }}</td>
+            <td data-label="Action">
+                <span class="badge badge-out">{{ e['action'] }}</span>
+            </td>
+            <td data-label="Handover Date">{{ e['created_at'] }}</td>
+        </tr>
+        {% endfor %}
+    {% else %}
+        <tr>
+            <td colspan="7" style="text-align:center; padding:40px; color:var(--text-muted);">
+                No deliveries found
+            </td>
+        </tr>
+    {% endif %}
+</tbody>
             </table>
         </div>
     </section>
