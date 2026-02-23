@@ -1,3 +1,4 @@
+# inventory_routes.py
 from flask import Blueprint, request, jsonify, render_template, redirect, g, url_for, flash
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -35,7 +36,6 @@ def add_lens():
     except psycopg2.Error as e:
         con.rollback()
         flash(f"Database error: {e.pgerror or str(e)}", "danger")
-
     finally:
         cur.close()
         con.close()
@@ -72,7 +72,6 @@ def add_doctor():
     except psycopg2.Error as e:
         con.rollback()
         flash(f"Database error: {e.pgerror or str(e)}", "danger")
-
     finally:
         cur.close()
         con.close()
@@ -95,17 +94,13 @@ def inventory_page():
         selected_lens = request.args.get("lens_id")
         selected_power = request.args.get("power")
 
-        # Lenses
         cur.execute("SELECT id, name FROM lenses ORDER BY name")
         lenses = cur.fetchall()
 
-        # Doctors
         cur.execute("SELECT id, name FROM doctors ORDER BY name")
         doctors = cur.fetchall()
 
-        # -----------------------------
-        # STOCK QUERY
-        # -----------------------------
+        # Stock Query
         query = """
             SELECT l.id, l.name, s.power, s.quantity_available
             FROM inventory_stock s
@@ -129,10 +124,7 @@ def inventory_page():
 
         cur.execute(query, params)
         stock = cur.fetchall()
-
-        # -----------------------------
-        # RECENT TRANSACTIONS
-        # -----------------------------
+        # Recent Transactions
         cur.execute("""
             SELECT
                 l.name AS lens_name,
@@ -190,11 +182,9 @@ def inventory_page():
             recent=recent,
             staff_deliveries=staff_deliveries
         )
-
-    finally:
-        cur.close()
-        con.close()
-
+        # -----------------------------
+# STAFF DELIVERY ACTIVITY
+# -----------------------------
 
 # -----------------------------
 # STOCK IN / OUT
@@ -262,19 +252,18 @@ def stock_in():
                 INSERT INTO stock_out (lens_id, power, quantity, user_id, doctor_id, delivery_date)
                 VALUES (%s, %s, %s, %s, %s, CURRENT_DATE)
             """, (lens_id, power, quantity, g.user['id'], doctor_id))
-
             cur.execute("""
-                INSERT INTO employee_deliveries
-                (username, lens_id, doctor_id, power, quantity, action, created_at)
-                VALUES (%s, %s, %s, %s, %s, %s, NOW())
-            """, (
-                g.user["username"],
-                lens_id,
-                doctor_id,
-                power,
-                quantity,
-                "OUT"
-            ))
+    INSERT INTO employee_deliveries
+    (username, lens_id, doctor_id, power, quantity, action, created_at)
+    VALUES (%s, %s, %s, %s, %s, %s, NOW())
+""", (
+    g.user["username"],
+    lens_id,
+    doctor_id,
+    power,
+    quantity,
+    "OUT"
+))
 
             cur.execute("""
                 UPDATE inventory_stock
@@ -292,7 +281,6 @@ def stock_in():
     except psycopg2.Error as e:
         con.rollback()
         flash(f"Database error: {e.pgerror or str(e)}", "danger")
-
     finally:
         cur.close()
         con.close()
@@ -316,12 +304,13 @@ def view_stock():
             JOIN lenses l ON l.id = s.lens_id
             ORDER BY l.name, s.power
         """)
+
         rows = cur.fetchall()
+
         return jsonify(rows)
 
     except psycopg2.Error as e:
         return jsonify({"error": e.pgerror or str(e)}), 500
-
     finally:
         cur.close()
         con.close()
