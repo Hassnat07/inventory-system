@@ -7,6 +7,9 @@ from inventory_db import get_db
 inventory_bp = Blueprint("inventory", __name__, url_prefix="/inventory")
 
 
+# -----------------------------
+# ADD LENS
+# -----------------------------
 @inventory_bp.route("/add-lens", methods=["POST"])
 def add_lens():
     if not g.user:
@@ -26,24 +29,29 @@ def add_lens():
             flash("Lens already exists", "danger")
             return redirect("/portal/inventory")
 
-        cur.execute("INSERT INTO lenses (name) VALUES (%s) RETURNING id", (name,))
+        cur.execute("INSERT INTO lenses (name) VALUES (%s)", (name,))
         con.commit()
-
         flash("Lens added successfully!", "success")
-        return redirect("/portal/inventory")
 
+    except psycopg2.Error as e:
+        con.rollback()
+        flash(f"Database error: {e.pgerror or str(e)}", "danger")
     finally:
         cur.close()
         con.close()
 
+    return redirect("/portal/inventory")
 
+
+# -----------------------------
+# ADD DOCTOR
+# -----------------------------
 @inventory_bp.route("/add-doctor", methods=["POST"])
 def add_doctor():
     if not g.user:
         return redirect(url_for("auth.login"))
 
     name = request.form.get("name", "").strip()
-
     if not name:
         flash("Doctor name is required", "danger")
         return redirect("/portal/inventory")
@@ -61,9 +69,9 @@ def add_doctor():
         con.commit()
         flash("Doctor added successfully!", "success")
 
-    except Exception as e:
+    except psycopg2.Error as e:
         con.rollback()
-        flash(f"Error: {str(e)}", "danger")
+        flash(f"Database error: {e.pgerror or str(e)}", "danger")
     finally:
         cur.close()
         con.close()
@@ -71,6 +79,9 @@ def add_doctor():
     return redirect("/portal/inventory")
 
 
+# -----------------------------
+# INVENTORY PAGE
+# -----------------------------
 @inventory_bp.route("/")
 def inventory_page():
     if not g.user:
@@ -89,7 +100,7 @@ def inventory_page():
         cur.execute("SELECT id, name FROM doctors ORDER BY name")
         doctors = cur.fetchall()
 
-        # Current stock
+        # Stock Query
         query = """
             SELECT l.id, l.name, s.power, s.quantity_available
             FROM inventory_stock s
@@ -101,6 +112,7 @@ def inventory_page():
         if selected_lens:
             conditions.append("l.id = %s")
             params.append(selected_lens)
+
         if selected_power:
             conditions.append("s.power = %s")
             params.append(selected_power)
@@ -113,20 +125,12 @@ def inventory_page():
         cur.execute(query, params)
         stock = cur.fetchall()
 
-        # Recent transactions
-        recent_query = """
-        SELECT
-            lens_name,
-            power,
-            doctor_name,
-            quantity,
-            action,
-            date_time
-        FROM (
-            SELECT 
+        # Recent Transactions
+        cur.execute("""
+            SELECT
                 l.name AS lens_name,
                 si.power,
-                NULL AS doctor_name,
+                NULL::text AS doctor_name,
                 si.quantity,
                 'IN' AS action,
                 si.created_at AS date_time
@@ -145,78 +149,11 @@ def inventory_page():
             FROM stock_out so
             JOIN lenses l ON l.id = so.lens_id
             LEFT JOIN doctors d ON d.id = so.doctor_id
-        )
-        ORDER BY date_time DESC
-        LIMIT 50
-        """
 
-        cur.execute(recent_query)
-        recent = cur.fetchall()
-
-        # Staff Delivery Activity — only team members
-        cur.execute("""
-            SELECT 
-                username,
-                lens_name,
-                power,
-                quantity,
-                created_at,
-                doctor_name,
-                action
-            FROM (
-                -- STOCK IN (ONLY TEAM)
-                SELECT
-                    u.username AS username,
-                    l.name AS lens_name,
-                    si.power AS power,
-                    si.quantity AS quantity,
-                    si.created_at AS created_at,
-                    NULL AS doctor_name,
-                    'IN' AS action
-                FROM stock_in si
-                JOIN lenses l ON l.id = si.lens_id
-                JOIN users u ON u.id = si.added_by
-                WHERE u.role = 'team'
-
-                UNION ALL
-
-                -- STOCK OUT (ONLY TEAM)
-                SELECT
-                    u.username AS username,
-                    l.name AS lens_name,
-                    so.power AS power,
-                    so.quantity AS quantity,
-                    so.created_at AS created_at,
-                    d.name AS doctor_name,
-                    'OUT' AS action
-                FROM stock_out so
-                JOIN lenses l ON l.id = so.lens_id
-                JOIN users u ON u.id = so.user_id
-                LEFT JOIN doctors d ON d.id = so.doctor_id
-                WHERE u.role = 'team'
-            )
-            ORDER BY created_at DESC
+            ORDER BY date_time DESC
+            LIMIT 50
         """)
-        employee_log = cur.fetchall()
-
-        print("STAFF DATA:", employee_log)
-
-        # Debug print
-        print("\n=== DEBUG: Recent transactions ===")
-        if recent:
-            first = recent[0]
-            print("Row type:", type(first).__name__)
-            print("Has keys attribute:", hasattr(first, 'keys'))
-            if hasattr(first, 'keys'):
-                print("Keys:", list(first.keys()))
-                print("Sample row dict:", dict(first))
-                print("Quantity value:", first["quantity"])
-            else:
-                print("Row as tuple:", tuple(first))
-                print("Quantity (position 3):", first[3])
-        else:
-            print("No recent rows")
-        print("===================================\n")
+        recent = cur.fetchall()
 
         return render_template(
             "inventory.html",
@@ -224,8 +161,7 @@ def inventory_page():
             lenses=lenses,
             doctors=doctors,
             stock=stock,
-            recent=recent,
-            employee_log=employee_log
+            recent=recent
         )
 
     finally:
@@ -233,20 +169,26 @@ def inventory_page():
         con.close()
 
 
+# -----------------------------
+# STOCK IN / OUT
+# -----------------------------
 @inventory_bp.route("/stock-in", methods=["POST"])
 def stock_in():
     if not g.user:
         return jsonify({"error": "Unauthorized"}), 403
 
     data = request.form
+
     try:
         lens_id = int(data.get("lens_id"))
         power = data.get("power", "").strip()
         quantity = int(data.get("quantity"))
         transaction_type = data.get("type", "IN").upper()
+
         if quantity <= 0:
             raise ValueError("Quantity must be positive")
-    except (ValueError, TypeError) as e:
+
+    except Exception as e:
         flash(f"Invalid input: {str(e)}", "danger")
         return redirect("/portal/inventory")
 
@@ -255,29 +197,36 @@ def stock_in():
 
     try:
         if transaction_type == "IN":
+
             cur.execute("""
                 INSERT INTO stock_in (lens_id, power, quantity, added_by)
                 VALUES (%s, %s, %s, %s)
-            """, (lens_id, power, quantity, g.user["id"]))
+            """, (lens_id, power, quantity, g.user['id']))
 
             cur.execute("""
                 INSERT INTO inventory_stock (lens_id, power, quantity_available)
                 VALUES (%s, %s, %s)
                 ON CONFLICT (lens_id, power)
-                DO UPDATE SET quantity_available = inventory_stock.quantity_available + EXCLUDED.quantity_available
+                DO UPDATE SET
+                    quantity_available =
+                    inventory_stock.quantity_available + EXCLUDED.quantity_available
             """, (lens_id, power, quantity))
 
         elif transaction_type == "OUT":
+
             doctor_id = data.get("doctor_id")
             if not doctor_id:
                 flash("Doctor is required for stock OUT", "danger")
                 return redirect("/portal/inventory")
 
             cur.execute("""
-                SELECT quantity_available FROM inventory_stock 
+                SELECT quantity_available
+                FROM inventory_stock
                 WHERE lens_id = %s AND power = %s
             """, (lens_id, power))
+
             current = cur.fetchone()
+
             if not current or current["quantity_available"] < quantity:
                 flash("Not enough stock available", "danger")
                 return redirect("/portal/inventory")
@@ -285,7 +234,7 @@ def stock_in():
             cur.execute("""
                 INSERT INTO stock_out (lens_id, power, quantity, user_id, doctor_id, delivery_date)
                 VALUES (%s, %s, %s, %s, %s, CURRENT_DATE)
-            """, (lens_id, power, quantity, g.user["id"], doctor_id))
+            """, (lens_id, power, quantity, g.user['id'], doctor_id))
 
             cur.execute("""
                 UPDATE inventory_stock
@@ -294,15 +243,15 @@ def stock_in():
             """, (quantity, lens_id, power))
 
         else:
-            flash("Invalid transaction type (must be IN or OUT)", "danger")
+            flash("Invalid transaction type", "danger")
             return redirect("/portal/inventory")
 
         con.commit()
-        flash(f"{transaction_type} transaction processed successfully!", "success")
+        flash("Transaction processed successfully!", "success")
 
-    except Exception as e:
+    except psycopg2.Error as e:
         con.rollback()
-        flash(f"Transaction failed: {str(e)}", "danger")
+        flash(f"Database error: {e.pgerror or str(e)}", "danger")
     finally:
         cur.close()
         con.close()
@@ -310,6 +259,9 @@ def stock_in():
     return redirect("/portal/inventory#inventory-levels")
 
 
+# -----------------------------
+# API STOCK
+# -----------------------------
 @inventory_bp.route("/api/stock")
 def view_stock():
     con = get_db()
@@ -317,23 +269,19 @@ def view_stock():
 
     try:
         cur.execute("""
-            SELECT l.name, l.brand, s.power, s.quantity_available, s.reorder_level
+            SELECT l.name, l.brand, s.power,
+                   s.quantity_available, s.reorder_level
             FROM inventory_stock s
             JOIN lenses l ON l.id = s.lens_id
             ORDER BY l.name, s.power
         """)
+
         rows = cur.fetchall()
 
-        return jsonify([
-            {
-                "lens": r["name"],
-                "brand": r["brand"] or "N/A",
-                "power": r["power"],
-                "quantity": r["quantity_available"],
-                "reorder": r["reorder_level"]
-            } for r in rows
-        ])
+        return jsonify(rows)
 
+    except psycopg2.Error as e:
+        return jsonify({"error": e.pgerror or str(e)}), 500
     finally:
         cur.close()
         con.close()
