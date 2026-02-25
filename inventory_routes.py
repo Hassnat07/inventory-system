@@ -2,7 +2,7 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, g, url_for, flash
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from inventory_db import get_db
+from database import get_db
 
 inventory_bp = Blueprint("inventory", __name__)
 
@@ -318,3 +318,4 @@ def view_stock():
     finally:
         cur.close()
         con.close()
+
