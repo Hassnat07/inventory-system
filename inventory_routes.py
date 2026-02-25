@@ -108,7 +108,7 @@ def inventory_page():
         """)
         stock = cur.fetchall()
 
-        # Recent
+        # Recent Transactions
         cur.execute("""
             SELECT
                 l.name AS lens_name,
@@ -138,8 +138,15 @@ def inventory_page():
         """)
         recent = cur.fetchall()
 
-        # Staff deliveries
-        cur.execute("""
+        # -----------------------------
+        # STAFF DELIVERY FILTER LOGIC
+        # -----------------------------
+        emp = request.args.get("emp")
+        emp_doc = request.args.get("emp_doc")
+        emp_lens = request.args.get("emp_lens")
+        emp_date = request.args.get("emp_date")
+
+        staff_query = """
             SELECT
                 ed.username,
                 l.name AS lens_name,
@@ -151,11 +158,36 @@ def inventory_page():
             FROM employee_deliveries ed
             LEFT JOIN lenses l ON l.id = ed.lens_id
             LEFT JOIN doctors d ON d.id = ed.doctor_id
-            ORDER BY ed.created_at DESC
-        """)
+        """
+
+        conditions = []
+        params = []
+
+        if emp:
+            conditions.append("ed.username = %s")
+            params.append(emp)
+
+        if emp_doc:
+            conditions.append("ed.doctor_id = %s")
+            params.append(emp_doc)
+
+        if emp_lens:
+            conditions.append("ed.lens_id = %s")
+            params.append(emp_lens)
+
+        if emp_date:
+            conditions.append("DATE(ed.created_at) = %s")
+            params.append(emp_date)
+
+        if conditions:
+            staff_query += " WHERE " + " AND ".join(conditions)
+
+        staff_query += " ORDER BY ed.created_at DESC"
+
+        cur.execute(staff_query, params)
         staff_deliveries = cur.fetchall()
 
-        # Dropdown usernames
+        # Staff Dropdown List
         cur.execute("""
             SELECT DISTINCT username
             FROM employee_deliveries
