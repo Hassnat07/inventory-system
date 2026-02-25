@@ -291,27 +291,30 @@
     <!--               CURRENT INVENTORY                  -->
     <!-- ──────────────────────────────────────────────── -->
 
+    <!-- ──────────────────────────────────────────────── -->
+    <!--               CURRENT INVENTORY                  -->
+    <!-- ──────────────────────────────────────────────── -->
+
     <section id="inventory-levels">
         <h2>Current Inventory Levels</h2>
 
         <form class="filter-row" method="GET" action="{{ url_for('inventory.inventory_page') }}#inventory-levels">
-            <select name="lens_id">
+            <select name="inv_lens_id">
                 <option value="">All Lenses</option>
                 {% for l in lenses %}
                     <option value="{{ l['id'] }}"
-                    {% if request.args.get('lens_id') == l['id']|string %}selected{% endif %}>
+                    {% if request.args.get('inv_lens_id') == l['id']|string %}selected{% endif %}>
                     {{ l['name'] }}
                 </option>
                 {% endfor %}
             </select>
 
-            <input name="power" placeholder="Filter by Power" value="{{ request.args.get('power', '') }}">
+            <input name="inv_power" placeholder="Filter by Power" value="{{ request.args.get('inv_power', '') }}">
 
             <button type="submit" style="background: var(--secondary); min-width: 80px;">
                 Filter
             </button>
         </form>
-
         <div class="table-container">
             <table>
                 <thead>
