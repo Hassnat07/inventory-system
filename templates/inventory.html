@@ -416,15 +416,16 @@
         <h2>Staff Delivery Activity</h2>
 
        <form class="filter-row" method="GET" action="{{ url_for('inventory.inventory_page') }}#staff-delivery">
-            <select name="emp">
-                <option value="">All Staff</option>
-                {% for e in employee_log | map(attribute='username') | unique %}
-                    <option value="{{ e }}"
-                        {% if request.args.get('emp') == e %}selected{% endif %}>
-                        {{ e }}
-                    </option>
-                {% endfor %}
-            </select>
+<select name="emp">
+    <option value="">All Staff</option>
+
+    {% for staff in staff_list %}
+        <option value="{{ staff['username'] }}"
+            {% if request.args.get('emp') == staff['username'] %}selected{% endif %}>
+            {{ staff['username'] }}
+        </option>
+    {% endfor %}
+</select>
 
             <select name="emp_doc">
     <option value="">All Doctors</option>
@@ -465,27 +466,27 @@
                     </tr>
                 </thead>
 <tbody>
-    {% if employee_log %}
-        {% for e in employee_log %}
-        <tr>
-            <td data-label="Employee">{{ e['username'] }}</td>
-            <td data-label="Lens Details">{{ e['lens_name'] }}</td>
-            <td data-label="Doctor">{{ e['doctor_name'] or 'N/A' }}</td>
-            <td data-label="Power">{{ e['power'] }}</td>
-            <td data-label="Quantity">{{ e['quantity'] }}</td>
-            <td data-label="Action">
-                <span class="badge badge-out">{{ e['action'] }}</span>
-            </td>
-            <td data-label="Handover Date">{{ e['created_at'] }}</td>
-        </tr>
-        {% endfor %}
-    {% else %}
-        <tr>
-            <td colspan="7" style="text-align:center; padding:40px; color:var(--text-muted);">
-                No deliveries found
-            </td>
-        </tr>
-    {% endif %}
+{% if staff_deliveries %}
+    {% for row in staff_deliveries %}
+    <tr>
+        <td data-label="Employee">{{ row['username'] }}</td>
+        <td data-label="Lens Details">{{ row['lens_name'] }}</td>
+        <td data-label="Doctor">{{ row['doctor_name'] or 'N/A' }}</td>
+        <td data-label="Power">{{ row['power'] }}</td>
+        <td data-label="Quantity">{{ row['quantity'] }}</td>
+        <td data-label="Action">
+            <span class="badge badge-out">{{ row['action'] }}</span>
+        </td>
+        <td data-label="Handover Date">{{ row['created_at'] }}</td>
+    </tr>
+    {% endfor %}
+{% else %}
+    <tr>
+        <td colspan="7" style="text-align:center; padding:40px; color:var(--text-muted);">
+            No deliveries found
+        </td>
+    </tr>
+{% endif %}
 </tbody>
             </table>
         </div>
