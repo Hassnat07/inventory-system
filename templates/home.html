@@ -1,311 +1,512 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ramay Electromedics | Precision Ophthalmic Tech</title>
+    <meta charset="UTF-8">
+    <title>Inventory Management | Ramay Electromedics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #2563eb;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #166534;
+            --danger: #991b1b;
+        }
 
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+        * { box-sizing: border-box; }
 
-<style>
-:root {
-    --neon-blue: #00bfff;
-    --deep-bg: #030b10;
-    --glass: rgba(255, 255, 255, 0.03);
-    --border: rgba(0, 191, 255, 0.3);
-}
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 15px;
+            color: var(--text-dark);
+            line-height: 1.5;
+        }
 
-body {
-    margin: 0;
-    background: var(--deep-bg);
-    color: white;
-    font-family: 'Inter', sans-serif;
-    overflow-x: hidden;
-}
+        .container { max-width: 1200px; margin: 0 auto; }
 
-canvas { position: fixed; top: 0; left: 0; z-index: -1; }
+        h1 { color: var(--primary); font-size: 24px; margin-bottom: 5px; }
+        .subtitle { color: var(--text-muted); margin-bottom: 25px; font-size: 13px; }
 
-/* Navigation Spice */
-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 8%;
-    position: fixed;
-    width: 100%;
-    background: rgba(3, 11, 16, 0.8);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--border);
-    z-index: 100;
-    box-sizing: border-box;
-}
+        section {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
 
-.logo {
-    font-family: 'Orbitron';
-    color: var(--neon-blue);
-    font-weight: 900;
-    letter-spacing: 3px;
-    text-shadow: 0 0 15px rgba(0, 191, 255, 0.6);
-}
+        .alert-danger {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #f87171;
+        }
 
-.nav-links a {
-    color: rgba(255,255,255,0.7);
-    text-decoration: none;
-    margin-left: 25px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    transition: 0.3s;
-    letter-spacing: 1px;
-}
+        .alert-success {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #4ade80;
+        }
 
-.nav-links a:hover { color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); }
+        h2 {
+            color: var(--primary);
+            font-size: 17px;
+            margin-top: 0;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-.portal-btn {
-    margin-left: 30px;
-    background: transparent;
-    border: 1px solid var(--neon-blue);
-    padding: 8px 18px;
-    border-radius: 4px;
-    color: var(--neon-blue);
-    cursor: pointer;
-    font-weight: 600;
-    transition: 0.3s;
-}
+        .form-grid, .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
 
-.portal-btn:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 20px var(--neon-blue); }
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
 
-/* Hero Section */
-section { min-height: 100vh; padding: 100px 10%; display: flex; align-items: center; }
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
 
-.hero-layout {
-    display: grid;
-    grid-template-columns: 1.2fr 0.8fr;
-    gap: 40px;
-    align-items: center;
-}
+        button:hover { background: var(--secondary); }
 
-h1 {
-    font-family: 'Orbitron';
-    font-size: clamp(2.5rem, 6vw, 4.5rem);
-    margin: 0;
-    line-height: 0.9;
-    text-transform: uppercase;
-}
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
 
-.highlight {
-    color: var(--neon-blue);
-    -webkit-text-stroke: 1px var(--neon-blue);
-    background: linear-gradient(180deg, var(--neon-blue), #005f7a);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            background: #f8fafc;
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 12px;
+            border-bottom: 2px solid var(--border);
+        }
+        td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
 
-.hero-image-box {
-    position: relative;
-    border: 1px solid var(--border);
-    height: 400px;
-    border-radius: 30px;
-    background: url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=1000') center/cover;
-    box-shadow: 0 0 50px rgba(0, 191, 255, 0.15);
-    animation: float 6s ease-in-out infinite;
-}
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .badge-in { background: #dcfce7; color: var(--success); }
+        .badge-out { background: #fee2e2; color: var(--danger); }
 
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-20px); }
-}
+        @media (max-width: 600px) {
+            .form-grid, .filter-row {
+                grid-template-columns: 1fr;
+            }
 
-/* Glass Cards */
-.glass {
-    background: var(--glass);
-    backdrop-filter: blur(15px);
-    padding: 50px;
-    border-radius: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    width: 100%;
-}
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
 
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 30px;
-    margin-top: 40px;
-}
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
 
-.card {
-    background: rgba(255, 255, 255, 0.02);
-    padding: 35px;
-    border-radius: 20px;
-    transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    position: relative;
-    overflow: hidden;
-}
+            tr {
+                border: 1px solid var(--border);
+                margin-bottom: 10px;
+                border-radius: 8px;
+                padding: 5px;
+            }
 
-.card::before {
-    content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
-    background: var(--neon-blue); transform: scaleX(0); transition: 0.3s;
-}
+            td {
+                border: none;
+                border-bottom: 1px solid #eee;
+                position: relative;
+                padding-left: 50%;
+                text-align: right;
+            }
 
-.card:hover {
-    transform: translateY(-15px) scale(1.02);
-    background: rgba(0, 191, 255, 0.08);
-    border-color: var(--neon-blue);
-}
+            td:last-child { border-bottom: none; }
 
-.card:hover::before { transform: scaleX(1); }
-
-.card h3 { font-family: 'Orbitron'; font-size: 2rem; color: var(--neon-blue); margin: 0; }
-
-.cta {
-    background: var(--neon-blue);
-    padding: 16px 45px;
-    border: none;
-    color: black;
-    font-weight: 800;
-    font-family: 'Orbitron';
-    border-radius: 2px;
-    cursor: pointer;
-    margin-top: 30px;
-    clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
-    transition: 0.3s;
-}
-
-.cta:hover { transform: skew(-5deg); box-shadow: 10px 0 20px rgba(0,191,255,0.4); }
-
-/* Forms */
-input, textarea {
-    width: 100%; padding: 18px; margin-top: 15px; border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white;
-    box-sizing: border-box;
-}
-
-footer { text-align: center; padding: 60px; font-size: 0.8rem; color: rgba(255,255,255,0.4); letter-spacing: 2px; }
-
-</style>
+            td:before {
+                position: absolute;
+                left: 12px;
+                width: 45%;
+                padding-right: 10px;
+                white-space: nowrap;
+                text-align: left;
+                font-weight: bold;
+                color: var(--text-muted);
+                content: attr(data-label);
+            }
+        }
+    </style>
 </head>
-
 <body>
 
-<nav>
-    <div class="logo">RAMAY.BIO</div>
-    <div>
-        <span class="nav-links">
-            <a href="#hero">Home</a>
-            <a href="#catalog">Equipment</a>
-            <a href="#portfolio">Partners</a>
-            <a href="#contact">Contact</a>
-        </span>
-        <button class="portal-btn"
-        onclick="window.location.href='/portal/login'">
-    LOG-IN
-</button>
-    </div>
-</nav>
+<div class="container">
 
-<section id="hero">
-    <div class="hero-layout">
-        <div class="hero-content">
-            <h1>NEXT-GEN <br><span class="highlight">OPHTHALMICS</span></h1>
-            <p style="font-size: 1.1rem; opacity: 0.8; line-height: 1.6; margin: 25px 0;">
-                Revolutionizing eye care across Pakistan with laser-precision diagnostic tools and surgical systems. 
-                Where engineering meets clinical excellence.
-            </p>
-            <button class="cta">VIEW CATALOG</button>
+    <!-- TOP BAR + LOGOUT -->
+    {% if user and user.role == 'team' %}
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <div>
+            <h1 style="margin:0;">Inventory Management</h1>
+            <div class="subtitle">Ophthalmic lens stock control & delivery tracking</div>
         </div>
-        <div class="hero-image-box"></div>
-    </div>
-</section>
 
-<section>
-    <div class="glass">
-        <h2 style="font-family:Orbitron; letter-spacing: 4px; text-align: center;">VITAL STATISTICS</h2>
-        <div class="grid">
-            <div class="card" style="text-align:center;"><h3>250+</h3><p>SYSTEMS ACTIVE</p></div>
-            <div class="card" style="text-align:center;"><h3>15Y</h3><p>INDUSTRY LEADERSHIP</p></div>
-            <div class="card" style="text-align:center;"><h3>99%</h3><p>UPTIME RATE</p></div>
-            <div class="card" style="text-align:center;"><h3>24/7</h3><p>ENGINEER ON-SITE</p></div>
+        <a href="{{ url_for('auth.logout') }}" style="text-decoration:none;">
+            <button type="button" style="background:#991b1b; padding:10px 18px;">
+                Logout
+            </button>
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- FLASH MESSAGES -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+        <div class="{% if category == 'danger' %}alert-danger{% else %}alert-success{% endif %}">
+            <strong>Alert!</strong> {{ message }}
         </div>
-    </div>
-</section>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
 
-<section id="catalog">
-    <div class="glass">
-        <h2 style="font-family:Orbitron; color:var(--neon-blue);">SOLUTIONS</h2>
-        <div class="grid">
-            <div class="card"><h4>Phaco Systems</h4><p>Ultramodern fluidics for cataract precision.</p></div>
-            <div class="card"><h4>Spectral OCT</h4><p>High-speed retinal mapping & analytics.</p></div>
-            <div class="card"><h4>Digital Slit Lamps</h4><p>Integrated imaging for seamless diagnostics.</p></div>
-            <div class="card"><h4>Surgical Scopes</h4><p>Enhanced depth perception for microsurgery.</p></div>
+    <script>
+    setTimeout(() => {
+        document.querySelectorAll('.alert-danger, .alert-success')
+            .forEach(el => el.remove());
+    }, 5000);
+    </script>
+
+    <!-- ──────────────────────────────────────────────── -->
+    <!--                  ADMIN ONLY SECTIONS             -->
+    <!-- ──────────────────────────────────────────────── -->
+
+    {% if user and user.role == 'admin' %}
+    <section>
+        <h2>Register New Lens</h2>
+    <form class="form-grid" method="POST" action="{{ url_for('inventory.add_lens') }}">
+    <input type="text" name="name" placeholder="Enter Lens Name (e.g. Rohoto)" required>
+    <button type="submit">Add to Database</button>
+</form>
+    </section>
+
+    <section>
+        <h2>Add Doctor / Hospital</h2>
+        <form class="form-grid" method="POST" action="{{ url_for('inventory.add_doctor') }}">
+            <input type="text" name="name" placeholder="Enter Doctor Name" required>
+            <button type="submit">Add Doctor</button>
+        </form>
+    </section>
+    {% endif %}
+
+    <!-- ──────────────────────────────────────────────── -->
+    <!--            STOCK ENTRY (admin + team)            -->
+    <!-- ──────────────────────────────────────────────── -->
+
+    {% if user and user.role in ['admin', 'team'] %}
+    <section>
+        <h2>Stock Entry & Movement</h2>
+        <form class="form-grid" method="POST" action="{{ url_for('inventory.stock_in') }}">
+
+            <select name="doctor_id">
+                <option value="">Select Doctor (Optional)</option>
+                {% for d in doctors %}
+                    <option value="{{ d['id'] }}">{{ d['name'] }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="lens_id" required>
+                <option value="">Select Lens Brand</option>
+                {% for l in lenses %}
+                    <option value="{{ l['id'] }}">{{ l['name'] }}</option>
+                {% endfor %}
+            </select>
+
+            <input name="power" placeholder="Power" required>
+            <input type="number" name="quantity" placeholder="Quantity" min="1" required>
+
+            <select name="type" required>
+                <option value="">Select Action</option>
+                <option value="IN">Stock In (+)</option>
+                <option value="OUT">Stock Out (-)</option>
+            </select>
+
+            <button type="submit">Process Transaction</button>
+        </form>
+    </section>
+    {% endif %}
+
+    <!-- ──────────────────────────────────────────────── -->
+    <!--               CURRENT INVENTORY                  -->
+    <!-- ──────────────────────────────────────────────── -->
+
+    <section id="inventory-levels">
+        <h2>Current Inventory Levels</h2>
+
+        <form class="filter-row" method="GET" action="{{ url_for('inventory.inventory_page') }}#inventory-levels">
+            <select name="lens_id">
+                <option value="">All Lenses</option>
+                {% for l in lenses %}
+                    <option value="{{ l['id'] }}"
+                    {% if request.args.get('lens_id') == l['id']|string %}selected{% endif %}>
+                    {{ l['name'] }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <input name="power" placeholder="Filter by Power" value="{{ request.args.get('power', '') }}">
+
+            <button type="submit" style="background: var(--secondary); min-width: 80px;">
+                Filter
+            </button>
+        </form>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Lens Brand</th>
+                        <th>Power</th>
+                        <th>Available Quantity</th>
+                    </tr>
+                </thead>
+<tbody>
+    {% if stock %}
+        {% for s in stock %}
+        <tr>
+            <td data-label="Lens Brand"><strong>{{ s['name'] }}</strong></td>
+            <td data-label="Power">{{ s['power'] }}</td>
+            <td data-label="Available Quantity">{{ s['quantity_available'] }} units</td>
+        </tr>
+        {% endfor %}
+    {% else %}
+        <tr>
+            <td colspan="3" style="text-align:center; padding:40px; color:var(--text-muted);">
+                No stock entries found
+            </td>
+        </tr>
+    {% endif %}
+</tbody>
+            </table>
         </div>
-    </div>
-</section>
+    </section>
 
-<section id="contact">
-    <div class="glass" style="max-width:800px; margin:auto; border-color: var(--neon-blue);">
-        <h2 style="font-family:Orbitron; color:var(--neon-blue); text-align:center;">REQUEST QUOTE</h2>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-            <input type="text" placeholder="Clinic Name">
-            <input type="text" placeholder="Location">
+    <!-- ──────────────────────────────────────────────── -->
+    <!--              RECENT TRANSACTIONS (admin)         -->
+    <!-- ──────────────────────────────────────────────── -->
+
+    {% if user and user.role == 'admin' %}
+    <section id="recent-section">
+        <h2>Recent Transactions</h2>
+
+       <form class="filter-row" method="GET" action="{{ url_for('inventory.inventory_page') }}#recent-section">
+            <select name="rt_lens_id">
+                <option value="">All Brands</option>
+           {% for l in lenses %}
+    <option value="{{ l['id'] }}"
+        {% if request.args.get('rt_lens_id') == l['id']|string %}selected{% endif %}>
+        {{ l['name'] }}
+    </option>
+{% endfor %}
+            </select>
+
+            <select name="rt_doc_id">
+                <option value="">All Doctors</option>
+        {% for d in doctors %}
+    <option value="{{ d['id'] }}"
+        {% if request.args.get('rt_doc_id') == d['id']|string %}selected{% endif %}>
+        {{ d['name'] }}
+    </option>
+{% endfor %}
+            </select>
+
+            <input name="rt_power" placeholder="Power" value="{{ request.args.get('rt_power','') }}">
+
+            <select name="rt_type">
+                <option value="">All Types</option>
+                <option value="IN" {% if request.args.get('rt_type') == 'IN' %}selected{% endif %}>Stock In (+)</option>
+                <option value="OUT" {% if request.args.get('rt_type') == 'OUT' %}selected{% endif %}>Stock Out (-)</option>
+            </select>
+
+            <input type="date" name="rt_date" value="{{ request.args.get('rt_date','') }}">
+
+            <button type="submit" style="background: var(--secondary); min-width: 100px;">
+                Apply Filter
+            </button>
+        </form>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Lens Brand</th>
+                        <th>Power</th>
+                        <th>Doctor</th>
+                        <th>Qty</th>
+                        <th>Action</th>
+                        <th>Date Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if recent %}
+                        {% for r in recent %}
+                        <tr>
+                            <td data-label="Lens Brand"><strong>{{ r["lens_name"] }}</strong></td>
+                            <td data-label="Power">{{ r["power"] }}</td>
+                            <td data-label="Doctor">{{ r["doctor_name"] or 'N/A' }}</td>
+                            <td data-label="Qty">{{ r["quantity"] }}</td>
+                            <td data-label="Action">
+                                <span class="badge {% if r["action"] == 'IN' %}badge-in{% else %}badge-out{% endif %}">
+                                    {{ r["action"] }}
+                                </span>
+                            </td>
+                            <td data-label="Date Time">{{ r["date_time"] }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);">
+                                No recent transactions found
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
         </div>
-        <textarea rows="4" placeholder="How can we upgrade your facility?"></textarea>
-        <button class="cta" style="width:100%; margin-top: 20px; clip-path: none;">TRANSMIT INQUIRY</button>
+    </section>
+
+    <!-- ──────────────────────────────────────────────── -->
+    <!--             STAFF DELIVERY ACTIVITY (admin)      -->
+    <!-- ──────────────────────────────────────────────── -->
+
+    <section id="staff-delivery">
+        <h2>Staff Delivery Activity</h2>
+
+       <form class="filter-row" method="GET" action="{{ url_for('inventory.inventory_page') }}#staff-delivery">
+<select name="emp">
+    <option value="">All Staff</option>
+
+    {% set seen = [] %}
+    {% for row in staff_deliveries %}
+        {% if row['username'] not in seen %}
+            {% set _ = seen.append(row['username']) %}
+            <option value="{{ row['username'] }}"
+                {% if request.args.get('emp') == row['username'] %}selected{% endif %}>
+                {{ row['username'] }}
+            </option>
+        {% endif %}
+    {% endfor %}
+</select>
+
+            <select name="emp_doc">
+    <option value="">All Doctors</option>
+    {% for d in doctors %}
+        <option value="{{ d['id'] }}"
+            {% if request.args.get('emp_doc') == d['id']|string %}selected{% endif %}>
+            {{ d['name'] }}
+        </option>
+    {% endfor %}
+</select>
+
+<select name="emp_lens">
+    <option value="">All Lenses</option>
+    {% for l in lenses %}
+        <option value="{{ l['id'] }}"
+            {% if request.args.get('emp_lens') == l['id']|string %}selected{% endif %}>
+            {{ l['name'] }}
+        </option>
+    {% endfor %}
+</select>
+
+            <input type="date" name="emp_date" value="{{ request.args.get('emp_date','') }}">
+
+            <button type="submit" style="background: var(--secondary); min-width: 80px;">Search</button>
+        </form>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Lens Details</th>
+                        <th>Doctor</th>
+                        <th>Power</th>
+                        <th>Quantity</th>
+                        <th>Action</th>
+                        <th>Handover Date</th>
+                    </tr>
+                </thead>
+<tbody>
+{% if staff_deliveries %}
+    {% for row in staff_deliveries %}
+    <tr>
+        <td data-label="Employee">{{ row['username'] }}</td>
+        <td data-label="Lens Details">{{ row['lens_name'] }}</td>
+        <td data-label="Doctor">{{ row['doctor_name'] or 'N/A' }}</td>
+        <td data-label="Power">{{ row['power'] }}</td>
+        <td data-label="Quantity">{{ row['quantity'] }}</td>
+        <td data-label="Action">
+            <span class="badge badge-out">{{ row['action'] }}</span>
+        </td>
+        <td data-label="Handover Date">{{ row['created_at'] }}</td>
+    </tr>
+    {% endfor %}
+{% else %}
+    <tr>
+        <td colspan="7" style="text-align:center; padding:40px; color:var(--text-muted);">
+            No deliveries found
+        </td>
+    </tr>
+{% endif %}
+</tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Admin Dashboard Link -->
+    <div style="margin-top: 40px; text-align: center; padding-bottom: 20px;">
+        <hr style="border: 0; border-top: 1px solid var(--border); margin-bottom: 20px;">
+        <a href="{{ url_for('admin_dashboard') }}" style="text-decoration: none;">
+            <button type="button" style="background: var(--text-muted); min-width: 200px;">
+                Go to Admin Dashboard
+            </button>
+        </a>
     </div>
-</section>
+    {% endif %}
 
-<footer>
-    © 2026 RAMAY ELECTROMEDICS | ARCHITECTED FOR VISION
-</footer>
-
-<script>
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
-
-// SPICIER GEOMETRY: Torus Knot (Looks like complex optical lens/DNA)
-const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
-const material = new THREE.MeshPhongMaterial({
-    color: 0x00bfff,
-    wireframe: true,
-    transparent: true,
-    opacity: 0.2
-});
-const knot = new THREE.Mesh(geometry, material);
-scene.add(knot);
-
-const light = new THREE.PointLight(0x00bfff, 2, 100);
-light.position.set(10, 10, 10);
-scene.add(light);
-scene.add(new THREE.AmbientLight(0xffffff, 0.2));
-
-camera.position.z = 30;
-
-// MOUSE INTERACTION
-document.addEventListener('mousemove', (event) => {
-    const x = (event.clientX / window.innerWidth) - 0.5;
-    const y = (event.clientY / window.innerHeight) - 0.5;
-    gsap.to(knot.rotation, { x: y * 2, y: x * 2, duration: 2 });
-});
-
-function animate() {
-    requestAnimationFrame(animate);
-    knot.rotation.z += 0.001;
-    renderer.render(scene, camera);
-}
-animate();
-
-window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-});
-</script>
-
+</div>
 </body>
 </html>
