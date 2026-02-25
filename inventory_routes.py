@@ -312,8 +312,14 @@ VALUES (%s, %s, %s, %s, %s, %s)
     finally:
         cur.close()
         con.close()
-
-    return redirect(url_for("inventory.inventory_page") + "#inventory-levels")
+        return redirect(
+    url_for(
+        "inventory.inventory_page",
+        doctor_id=data.get("doctor_id") or "",
+        lens_id=lens_id,
+        type=transaction_type
+    ) + "#inventory-levels"
+)
 
 
 # -----------------------------
