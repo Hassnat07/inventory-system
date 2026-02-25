@@ -237,36 +237,54 @@
     <!-- ──────────────────────────────────────────────── -->
 
     {% if user and user.role in ['admin', 'team'] %}
-    <section>
-        <h2>Stock Entry & Movement</h2>
-        <form class="form-grid" method="POST" action="{{ url_for('inventory.stock_in') }}">
+<section>
+    <h2>Stock Entry & Movement</h2>
+    <form class="form-grid" method="POST" action="{{ url_for('inventory.stock_in') }}">
 
-            <select name="doctor_id">
-                <option value="">Select Doctor (Optional)</option>
-                {% for d in doctors %}
-                    <option value="{{ d['id'] }}">{{ d['name'] }}</option>
-                {% endfor %}
-            </select>
+        <!-- Doctor -->
+        <select name="doctor_id">
+            <option value="">Select Doctor (Optional)</option>
+            {% for d in doctors %}
+                <option value="{{ d['id'] }}"
+                    {% if request.form.get('doctor_id') == d['id']|string %}selected{% endif %}>
+                    {{ d['name'] }}
+                </option>
+            {% endfor %}
+        </select>
 
-            <select name="lens_id" required>
-                <option value="">Select Lens Brand</option>
-                {% for l in lenses %}
-                    <option value="{{ l['id'] }}">{{ l['name'] }}</option>
-                {% endfor %}
-            </select>
+        <!-- Lens -->
+        <select name="lens_id" required>
+            <option value="">Select Lens Brand</option>
+            {% for l in lenses %}
+                <option value="{{ l['id'] }}"
+                    {% if request.form.get('lens_id') == l['id']|string %}selected{% endif %}>
+                    {{ l['name'] }}
+                </option>
+            {% endfor %}
+        </select>
 
-            <input name="power" placeholder="Power" required>
-            <input type="number" name="quantity" placeholder="Quantity" min="1" required>
+        <!-- Power (RESET) -->
+        <input name="power" placeholder="Power" value="">
 
-            <select name="type" required>
-                <option value="">Select Action</option>
-                <option value="IN">Stock In (+)</option>
-                <option value="OUT">Stock Out (-)</option>
-            </select>
+        <!-- Quantity (RESET to 0) -->
+        <input type="number" name="quantity" placeholder="Quantity" min="1" value="0">
 
-            <button type="submit">Process Transaction</button>
-        </form>
-    </section>
+        <!-- Action -->
+        <select name="type" required>
+            <option value="">Select Action</option>
+            <option value="IN"
+                {% if request.form.get('type') == 'IN' %}selected{% endif %}>
+                Stock In (+)
+            </option>
+            <option value="OUT"
+                {% if request.form.get('type') == 'OUT' %}selected{% endif %}>
+                Stock Out (-)
+            </option>
+        </select>
+
+        <button type="submit">Process Transaction</button>
+    </form>
+</section>
     {% endif %}
 
     <!-- ──────────────────────────────────────────────── -->
