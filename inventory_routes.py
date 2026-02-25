@@ -153,6 +153,7 @@ def inventory_page():
             LIMIT 50
         """)
         recent = cur.fetchall()
+ 
 
         # -----------------------------
         # STAFF DELIVERY ACTIVITY
@@ -173,6 +174,8 @@ def inventory_page():
 """)
 
         staff_deliveries = cur.fetchall()
+        print("STAFF DELIVERY COUNT:", len(staff_deliveries))
+        print("STAFF DELIVERY DATA:", staff_deliveries)
 
         return render_template(
             "inventory.html",
