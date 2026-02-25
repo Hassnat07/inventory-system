@@ -57,14 +57,13 @@ def team_dashboard():
         ORDER BY l.name
     """)
     stock = cur.fetchall()
-
     cur.execute("""
-        SELECT l.name, e.power, e.quantity, e.delivered_at
-        FROM employee_deliveries e
-        JOIN lenses l ON l.id = e.lens_id
-        WHERE e.employee = %s
-        ORDER BY e.delivered_at DESC
-    """, (user["username"],))
+    SELECT l.name, e.power, e.quantity, e.created_at
+    FROM employee_deliveries e
+    JOIN lenses l ON l.id = e.lens_id
+    WHERE e.username = %s
+    ORDER BY e.created_at DESC
+""", (user["username"],))
     my_deliveries = cur.fetchall()
 
     con.close()
