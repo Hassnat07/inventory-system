@@ -232,16 +232,16 @@
     </section>
     {% endif %}
 
-    <!-- ──────────────────────────────────────────────── -->
-    <!--            STOCK ENTRY (admin + team)            -->
-    <!-- ──────────────────────────────────────────────── -->
+<!-- ──────────────────────────────────────────────── -->
+<!--            STOCK ENTRY (admin + team)            -->
+<!-- ──────────────────────────────────────────────── -->
 
-    {% if user and user.role in ['admin', 'team'] %}
+{% if user and user.role in ['admin', 'team'] %}
 <section>
     <h2>Stock Entry & Movement</h2>
     <form class="form-grid" method="POST" action="{{ url_for('inventory.stock_in') }}">
 
-        <!-- Doctor -->
+        <!-- Doctor (Preserve selection) -->
         <select name="doctor_id">
             <option value="">Select Doctor (Optional)</option>
             {% for d in doctors %}
@@ -252,7 +252,7 @@
             {% endfor %}
         </select>
 
-        <!-- Lens -->
+        <!-- Lens (Preserve selection) -->
         <select name="lens_id" required>
             <option value="">Select Lens Brand</option>
             {% for l in lenses %}
@@ -263,13 +263,13 @@
             {% endfor %}
         </select>
 
-        <!-- Power (RESET) -->
+        <!-- Power (ALWAYS RESET to empty after submission) -->
         <input name="power" placeholder="Power" value="">
 
-        <!-- Quantity (RESET to 0) -->
-        <input type="number" name="quantity" placeholder="Quantity" min="1" value="0">
+        <!-- Quantity (ALWAYS RESET to empty after submission) -->
+        <input type="number" name="quantity" placeholder="Quantity" min="1" value="">
 
-        <!-- Action -->
+        <!-- Action (Preserve selection) -->
         <select name="type" required>
             <option value="">Select Action</option>
             <option value="IN"
@@ -285,7 +285,7 @@
         <button type="submit">Process Transaction</button>
     </form>
 </section>
-    {% endif %}
+{% endif %}
 
     <!-- ──────────────────────────────────────────────── -->
     <!--               CURRENT INVENTORY                  -->
