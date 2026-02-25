@@ -91,40 +91,24 @@ def inventory_page():
     cur = con.cursor(cursor_factory=RealDictCursor)
 
     try:
-        selected_lens = request.args.get("lens_id")
-        selected_power = request.args.get("power")
-
+        # Lenses
         cur.execute("SELECT id, name FROM lenses ORDER BY name")
         lenses = cur.fetchall()
 
+        # Doctors
         cur.execute("SELECT id, name FROM doctors ORDER BY name")
         doctors = cur.fetchall()
 
-        # Stock Query
-        query = """
+        # Inventory
+        cur.execute("""
             SELECT l.id, l.name, s.power, s.quantity_available
             FROM inventory_stock s
             JOIN lenses l ON l.id = s.lens_id
-        """
-        conditions = []
-        params = []
-
-        if selected_lens:
-            conditions.append("l.id = %s")
-            params.append(selected_lens)
-
-        if selected_power:
-            conditions.append("s.power = %s")
-            params.append(selected_power)
-
-        if conditions:
-            query += " WHERE " + " AND ".join(conditions)
-
-        query += " ORDER BY l.name, s.power"
-
-        cur.execute(query, params)
+            ORDER BY l.name, s.power
+        """)
         stock = cur.fetchall()
-        # Recent Transactions
+
+        # Recent
         cur.execute("""
             SELECT
                 l.name AS lens_name,
@@ -153,29 +137,31 @@ def inventory_page():
             LIMIT 50
         """)
         recent = cur.fetchall()
- 
 
-        # -----------------------------
-        # STAFF DELIVERY ACTIVITY
-        # -----------------------------
+        # Staff deliveries
         cur.execute("""
-    SELECT
-        ed.username,
-        l.name AS lens_name,
-        d.name AS doctor_name,
-        ed.power,
-        ed.quantity,
-        ed.action,
-        ed.created_at
-    FROM employee_deliveries ed
-    LEFT JOIN lenses l ON l.id = ed.lens_id
-    LEFT JOIN doctors d ON d.id = ed.doctor_id
-    ORDER BY ed.created_at DESC
-""")
-
+            SELECT
+                ed.username,
+                l.name AS lens_name,
+                d.name AS doctor_name,
+                ed.power,
+                ed.quantity,
+                ed.action,
+                ed.created_at
+            FROM employee_deliveries ed
+            LEFT JOIN lenses l ON l.id = ed.lens_id
+            LEFT JOIN doctors d ON d.id = ed.doctor_id
+            ORDER BY ed.created_at DESC
+        """)
         staff_deliveries = cur.fetchall()
-        print("STAFF DELIVERY COUNT:", len(staff_deliveries))
-        print("STAFF DELIVERY DATA:", staff_deliveries)
+
+        # Dropdown usernames
+        cur.execute("""
+            SELECT DISTINCT username
+            FROM employee_deliveries
+            ORDER BY username
+        """)
+        staff_list = cur.fetchall()
 
         return render_template(
             "inventory.html",
@@ -184,8 +170,10 @@ def inventory_page():
             doctors=doctors,
             stock=stock,
             recent=recent,
-            staff_deliveries=staff_deliveries
+            staff_deliveries=staff_deliveries,
+            staff_list=staff_list
         )
+
     finally:
         cur.close()
         con.close()
