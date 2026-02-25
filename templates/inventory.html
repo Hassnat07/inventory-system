@@ -246,7 +246,7 @@
             <option value="">Select Doctor (Optional)</option>
             {% for d in doctors %}
                 <option value="{{ d['id'] }}"
-                    {% if request.form.get('doctor_id') == d['id']|string %}selected{% endif %}>
+                    {% if request.args.get('doctor_id') == d['id']|string %}selected{% endif %}>
                     {{ d['name'] }}
                 </option>
             {% endfor %}
@@ -257,7 +257,7 @@
             <option value="">Select Lens Brand</option>
             {% for l in lenses %}
                 <option value="{{ l['id'] }}"
-                    {% if request.form.get('lens_id') == l['id']|string %}selected{% endif %}>
+                    {% if request.args.get('lens_id') == l['id']|string %}selected{% endif %}>
                     {{ l['name'] }}
                 </option>
             {% endfor %}
@@ -273,11 +273,11 @@
         <select name="type" required>
             <option value="">Select Action</option>
             <option value="IN"
-                {% if request.form.get('type') == 'IN' %}selected{% endif %}>
+                {% if request.args.get('type') == 'IN' %}selected{% endif %}>
                 Stock In (+)
             </option>
             <option value="OUT"
-                {% if request.form.get('type') == 'OUT' %}selected{% endif %}>
+                {% if request.args.get('type') == 'OUT' %}selected{% endif %}>
                 Stock Out (-)
             </option>
         </select>
