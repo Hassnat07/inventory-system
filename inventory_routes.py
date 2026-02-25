@@ -171,6 +171,7 @@ def inventory_page():
     LEFT JOIN doctors d ON d.id = ed.doctor_id
     ORDER BY ed.created_at DESC
 """)
+
         staff_deliveries = cur.fetchall()
 
         return render_template(
@@ -257,9 +258,9 @@ def stock_in():
                 VALUES (%s, %s, %s, %s, %s, CURRENT_DATE)
             """, (lens_id, power, quantity, g.user['id'], doctor_id))
             cur.execute("""
-    INSERT INTO employee_deliveries
-    (username, lens_id, doctor_id, power, quantity, action, created_at)
-    VALUES (%s, %s, %s, %s, %s, %s, NOW())
+INSERT INTO employee_deliveries
+(username, lens_id, doctor_id, power, quantity, action)
+VALUES (%s, %s, %s, %s, %s, %s)
 """, (
     g.user["username"],
     lens_id,
@@ -318,4 +319,3 @@ def view_stock():
     finally:
         cur.close()
         con.close()
-
