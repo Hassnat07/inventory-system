@@ -315,10 +315,10 @@ VALUES (%s, %s, %s, %s, %s, %s)
         return redirect(
     url_for(
         "inventory.inventory_page",
-        doctor_id=data.get("doctor_id") or "",
-        lens_id=lens_id,
-        type=transaction_type
-    ) + "#inventory-levels"
+        doctor_id=request.form.get("doctor_id") or "",
+        lens_id=request.form.get("lens_id") or "",
+        type=request.form.get("type") or ""
+    )
 )
 
 
