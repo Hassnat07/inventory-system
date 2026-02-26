@@ -5,6 +5,7 @@ from generate_pdf import generate_pdf
 from flask import Flask, render_template, request, send_file, redirect, url_for, session, g
 from auth_routes import auth_bp
 from inventory_routes import inventory_bp
+import logging
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key'  # Added for session security
@@ -15,6 +16,11 @@ app.jinja_env.auto_reload = True
 
 app.register_blueprint(auth_bp, url_prefix="/portal")
 app.register_blueprint(inventory_bp, url_prefix="/portal/inventory")
+
+# Basic logging for debugging route mapping and incoming requests
+logging.basicConfig(level=logging.INFO)
+logging.getLogger("werkzeug").setLevel(logging.INFO)
+logging.info("Registered URL map:\n%s", app.url_map)
 
 # Initialize database tables
 from database import init_auth_tables
@@ -77,6 +83,7 @@ def team_dashboard():
 
 @app.before_request
 def load_logged_in_user():
+    logging.info("Incoming request: path=%s endpoint=%s method=%s", request.path, request.endpoint, request.method)
     g.user = None
     # In debug mode clear Jinja cache to ensure template edits appear immediately
     try:
@@ -119,3 +126,4 @@ def invoice():
 
 if __name__ == "__main__":
     app.run(debug=True)
+    
