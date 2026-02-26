@@ -32,7 +32,7 @@ init_db()
 @app.route("/home")
 @app.route("/")
 def home():
-    return print("hello")
+    return render_template("home.html")
 
 @app.route("/admin")
 def admin_dashboard():
@@ -127,6 +127,7 @@ def invoice():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
 
