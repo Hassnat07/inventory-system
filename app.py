@@ -29,9 +29,10 @@ from inventory_db import init_db
 init_auth_tables()
 init_db()
 
+@app.route("/home")
 @app.route("/")
 def home():
-     return render_template("home.html")
+    return render_template("home.html")
 
 @app.route("/admin")
 def admin_dashboard():
@@ -126,5 +127,6 @@ def invoice():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
