@@ -126,6 +126,53 @@
         .badge-in { background: #dcfce7; color: var(--success); }
         .badge-out { background: #fee2e2; color: var(--danger); }
 
+        /* Show More Button Styles */
+        .show-more-container {
+            text-align: center;
+            padding: 15px;
+            border-top: 1px solid var(--border);
+            background: #f8fafc;
+        }
+
+        .show-more-btn {
+            background: transparent;
+            color: var(--secondary);
+            border: 2px solid var(--secondary);
+            padding: 10px 30px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: auto;
+        }
+
+        .show-more-btn:hover {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .show-more-btn::after {
+            content: '▼';
+            font-size: 12px;
+            transition: transform 0.2s ease;
+        }
+
+        .show-more-btn.expanded::after {
+            transform: rotate(180deg);
+        }
+
+        /* Hidden rows */
+        .hidden-row {
+            display: none !important;
+        }
+
+        .hidden-row.visible {
+            display: table-row !important;
+        }
+
         @media (max-width: 600px) {
             .form-grid, .filter-row {
                 grid-template-columns: 1fr;
@@ -168,6 +215,11 @@
                 font-weight: bold;
                 color: var(--text-muted);
                 content: attr(data-label);
+            }
+
+            /* Mobile show more handling */
+            .hidden-row.visible {
+                display: block !important;
             }
         }
     </style>
@@ -291,10 +343,6 @@
     <!--               CURRENT INVENTORY                  -->
     <!-- ──────────────────────────────────────────────── -->
 
-    <!-- ──────────────────────────────────────────────── -->
-    <!--               CURRENT INVENTORY                  -->
-    <!-- ──────────────────────────────────────────────── -->
-
     <section id="inventory-levels">
         <h2>Current Inventory Levels</h2>
 
@@ -316,7 +364,7 @@
             </button>
         </form>
         <div class="table-container">
-            <table>
+            <table id="inventory-table">
                 <thead>
                     <tr>
                         <th>Lens Brand</th>
@@ -324,24 +372,31 @@
                         <th>Available Quantity</th>
                     </tr>
                 </thead>
-<tbody>
-    {% if stock %}
-        {% for s in stock %}
-        <tr>
-            <td data-label="Lens Brand"><strong>{{ s['name'] }}</strong></td>
-            <td data-label="Power">{{ s['power'] }}</td>
-            <td data-label="Available Quantity">{{ s['quantity_available'] }} units</td>
-        </tr>
-        {% endfor %}
-    {% else %}
-        <tr>
-            <td colspan="3" style="text-align:center; padding:40px; color:var(--text-muted);">
-                No stock entries found
-            </td>
-        </tr>
-    {% endif %}
-</tbody>
+                <tbody>
+                    {% if stock %}
+                        {% for s in stock %}
+                        <tr class="inventory-row {% if loop.index > 7 %}hidden-row{% endif %}">
+                            <td data-label="Lens Brand"><strong>{{ s['name'] }}</strong></td>
+                            <td data-label="Power">{{ s['power'] }}</td>
+                            <td data-label="Available Quantity">{{ s['quantity_available'] }} units</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="3" style="text-align:center; padding:40px; color:var(--text-muted);">
+                                No stock entries found
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
             </table>
+            {% if stock and stock|length > 7 %}
+            <div class="show-more-container">
+                <button type="button" class="show-more-btn" onclick="toggleRows('inventory-row', this)">
+                    Show More ({{ stock|length - 7 }} more)
+                </button>
+            </div>
+            {% endif %}
         </div>
     </section>
 
@@ -390,7 +445,7 @@
         </form>
 
         <div class="table-container">
-            <table>
+            <table id="recent-table">
                 <thead>
                     <tr>
                         <th>Lens Brand</th>
@@ -404,7 +459,7 @@
                 <tbody>
                     {% if recent %}
                         {% for r in recent %}
-                        <tr>
+                        <tr class="recent-row {% if loop.index > 7 %}hidden-row{% endif %}">
                             <td data-label="Lens Brand"><strong>{{ r["lens_name"] }}</strong></td>
                             <td data-label="Power">{{ r["power"] }}</td>
                             <td data-label="Doctor">{{ r["doctor_name"] or 'N/A' }}</td>
@@ -426,6 +481,13 @@
                     {% endif %}
                 </tbody>
             </table>
+            {% if recent and recent|length > 7 %}
+            <div class="show-more-container">
+                <button type="button" class="show-more-btn" onclick="toggleRows('recent-row', this)">
+                    Show More ({{ recent|length - 7 }} more)
+                </button>
+            </div>
+            {% endif %}
         </div>
     </section>
 
@@ -525,5 +587,25 @@
     {% endif %}
 
 </div>
+
+<script>
+function toggleRows(rowClass, btn) {
+    const hiddenRows = document.querySelectorAll('.' + rowClass + '.hidden-row');
+    const isExpanded = btn.classList.contains('expanded');
+    
+    if (isExpanded) {
+        // Collapse: hide rows beyond first 7
+        hiddenRows.forEach(row => row.classList.remove('visible'));
+        btn.classList.remove('expanded');
+        btn.innerHTML = 'Show More (' + hiddenRows.length + ' more)';
+    } else {
+        // Expand: show all hidden rows
+        hiddenRows.forEach(row => row.classList.add('visible'));
+        btn.classList.add('expanded');
+        btn.innerHTML = 'Show Less';
+    }
+}
+</script>
+
 </body>
 </html>
