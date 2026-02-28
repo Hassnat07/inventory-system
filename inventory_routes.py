@@ -294,7 +294,7 @@ def stock_in():
     try:
         lens_id = int(data.get("lens_id"))
         power = data.get("power", "").strip()
-        quantity = int(data.get("quantity"))
+        quantity = float(data.get("quantity"))
         transaction_type = data.get("type", "IN").upper()
 
         if quantity <= 0:
