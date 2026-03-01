@@ -1,8 +1,12 @@
 import os
 import psycopg2
-from dotenv import load_dotenv
 
-load_dotenv()
+# Load .env for local development; on Railway DATABASE_URL is set automatically
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 def get_db():
     url = os.getenv("DATABASE_URL")
