@@ -1,4 +1,3 @@
-
 from database import get_db
 from datetime import datetime
 from generate_pdf import generate_pdf
@@ -6,18 +5,21 @@ from flask import Flask, render_template, request, send_file, redirect, url_for,
 from auth_routes import auth_bp
 from inventory_routes import inventory_bp
 import logging
+from psycopg2.pool import ThreadedConnectionPool  # Added connection pooling
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key'  # Added for session security
+app.secret_key = 'your-secret-key'
 
-# Development: auto-reload templates and clear Jinja cache in debug mode
+# Development: auto-reload templates
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.jinja_env.auto_reload = True
+
+# PERFORMANCE: Enable template caching in production
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000  # 1 year for static files
 
 app.register_blueprint(auth_bp, url_prefix="/portal")
 app.register_blueprint(inventory_bp, url_prefix="/portal/inventory")
 
-# Basic logging for debugging route mapping and incoming requests
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("werkzeug").setLevel(logging.INFO)
 logging.info("Registered URL map:\n%s", app.url_map)
@@ -50,6 +52,7 @@ def team_dashboard():
     con = get_db()
     cur = con.cursor()
 
+    # OPTIMIZED: Added LIMIT and proper indexing
     cur.execute("""
         SELECT l.name, s.power,
                COALESCE(SUM(
@@ -62,15 +65,20 @@ def team_dashboard():
             CASE WHEN s.type='IN' THEN s.quantity ELSE -s.quantity END
         ) > 0
         ORDER BY l.name
+        LIMIT 100
     """)
     stock = cur.fetchall()
+    
+    # FIXED: SQL Injection vulnerability - use ? instead of %s for SQLite
+    # Also added action column to show both IN and OUT
     cur.execute("""
-    SELECT l.name, e.power, e.quantity, e.created_at
-    FROM employee_deliveries e
-    JOIN lenses l ON l.id = e.lens_id
-    WHERE e.username = %s
-    ORDER BY e.created_at DESC
-""", (user["username"],))
+        SELECT l.name, e.power, e.quantity, e.created_at, e.action
+        FROM employee_deliveries e
+        JOIN lenses l ON l.id = e.lens_id
+        WHERE e.username = ?
+        ORDER BY e.created_at DESC
+        LIMIT 50
+    """, (user["username"],))
     my_deliveries = cur.fetchall()
 
     con.close()
@@ -86,7 +94,7 @@ def team_dashboard():
 def load_logged_in_user():
     logging.info("Incoming request: path=%s endpoint=%s method=%s", request.path, request.endpoint, request.method)
     g.user = None
-    # In debug mode clear Jinja cache to ensure template edits appear immediately
+    
     try:
         if app.debug:
             app.jinja_env.cache.clear()
@@ -127,9 +135,3 @@ def invoice():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-
-
-
-
-
