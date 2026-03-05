@@ -536,7 +536,7 @@
         </form>
 
         <div class="table-container">
-            <table>
+            <table id="staff-delivery-table">
                 <thead>
                     <tr>
                         <th>Employee</th>
@@ -551,14 +551,16 @@
 <tbody>
 {% if staff_deliveries %}
     {% for row in staff_deliveries %}
-    <tr>
+    <tr class="staff-delivery-row {% if loop.index > 5 %}hidden-row{% endif %}">
         <td data-label="Employee">{{ row['username'] }}</td>
         <td data-label="Lens Details">{{ row['lens_name'] }}</td>
         <td data-label="Doctor">{{ row['doctor_name'] or 'N/A' }}</td>
         <td data-label="Power">{{ row['power'] }}</td>
         <td data-label="Quantity">{{ row['quantity'] }}</td>
         <td data-label="Action">
-            <span class="badge badge-out">{{ row['action'] }}</span>
+            <span class="badge {% if row['action'] == 'IN' %}badge-in{% else %}badge-out{% endif %}">
+                {{ row['action'] }}
+            </span>
         </td>
         <td data-label="Handover Date">{{ row['created_at'] }}</td>
     </tr>
@@ -572,6 +574,13 @@
 {% endif %}
 </tbody>
             </table>
+            {% if staff_deliveries and staff_deliveries|length > 5 %}
+            <div class="show-more-container">
+                <button type="button" class="show-more-btn" onclick="toggleRows('staff-delivery-row', this)">
+                    Show More ({{ staff_deliveries|length - 5 }} more)
+                </button>
+            </div>
+            {% endif %}
         </div>
     </section>
 
@@ -594,7 +603,7 @@ function toggleRows(rowClass, btn) {
     const isExpanded = btn.classList.contains('expanded');
     
     if (isExpanded) {
-        // Collapse: hide rows beyond first 7
+        // Collapse: hide rows beyond first N (5 for staff, 7 for others)
         hiddenRows.forEach(row => row.classList.remove('visible'));
         btn.classList.remove('expanded');
         btn.innerHTML = 'Show More (' + hiddenRows.length + ' more)';
