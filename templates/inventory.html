@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Inventory Management | Ramay Electromedics</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
     <style>
         :root {
@@ -269,6 +270,20 @@
                 display: block !important;
             }
         }
+        .select2-container .select2-selection--single {
+    height: 42px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 42px;
+    padding-left: 12px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 42px;
+}
     </style>
 </head>
 <body>
@@ -357,7 +372,7 @@
     <form class="form-grid" method="POST" action="{{ url_for('inventory.stock_in') }}">
 
         <!-- Doctor (Preserve selection) -->
-        <select name="doctor_id">
+        <select name="doctor_id" id="doctor-search">
             <option value="">Select Doctor (Optional)</option>
             {% for d in doctors %}
                 <option value="{{ d['id'] }}"
@@ -591,10 +606,22 @@ function toggleRows(rowClass, btn) {
     }
 }
 </script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#doctor-search').select2({
+        placeholder: "Search Doctor...",
+        allowClear: true,
+        width: '100%'
+    });
+});
+</script>
 
 </body>
 </html>
-
 
 
 
