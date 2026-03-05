@@ -2,101 +2,46 @@
 <html>
 <head>
     <title>Team Portal</title>
-    <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: rgba(255,255,255,0.95);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        h2 { color: #333; border-bottom: 3px solid #667eea; padding-bottom: 10px; }
-        h3 { color: #555; margin-top: 30px; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        th {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px;
-            text-align: left;
-        }
-        td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #eee;
-        }
-        tr:hover { background: #f8f9fa; }
-        .badge {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .badge-in { background: #d4edda; color: #155724; }
-        .badge-out { background: #f8d7da; color: #721c24; }
-    </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Welcome, {{ username }}</h2>
 
-        <h3>Available Inventory</h3>
-        <table border="1" cellpadding="8">
-            <tr>
-                <th>Lens</th>
-                <th>Power</th>
-                <th>Available</th>
-            </tr>
-            {% for s in stock %}
-            <tr>
-                <td>{{ s[0] }}</td>
-                <td>{{ s[1] }}</td>
-                <td>{{ s[2] }} units</td>
-            </tr>
-            {% endfor %}
-        </table>
+<h2>Welcome, {{ username }}</h2>
 
-        <hr>
+<h3>Available Inventory</h3>
+<table border="1" cellpadding="8">
+<tr>
+    <th>Lens</th>
+    <th>Power</th>
+    <th>Available</th>
+</tr>
+{% for s in stock %}
+<tr>
+    <td>{{ s[0] }}</td>
+    <td>{{ s[1] }}</td>
+    <td>{{ s[2] }} units</td>
+</tr>
+{% endfor %}
+</table>
 
-        <h3>My Delivery History</h3>
-        <table border="1" cellpadding="8">
-            <tr>
-                <th>Lens</th>
-                <th>Power</th>
-                <th>Qty</th>
-                <th>Action</th>
-                <th>Date</th>
-            </tr>
-            {% for d in my_deliveries %}
-            <tr>
-                <td>{{ d[0] }}</td>
-                <td>{{ d[1] }}</td>
-                <td>{{ d[2] }}</td>
-                <td>
-                    {% if d[4] == 'IN' %}
-                    <span class="badge badge-in">📥 IN</span>
-                    {% else %}
-                    <span class="badge badge-out">📤 OUT</span>
-                    {% endif %}
-                </td>
-                <td>{{ d[3] }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
+<hr>
+
+<h3>My Delivery History</h3>
+<table border="1" cellpadding="8">
+<tr>
+    <th>Lens</th>
+    <th>Power</th>
+    <th>Qty</th>
+    <th>Date</th>
+</tr>
+{% for d in my_deliveries %}
+<tr>
+    <td>{{ d[0] }}</td>
+    <td>{{ d[1] }}</td>
+    <td>{{ d[2] }}</td>
+    <td>{{ d[3] }}</td>
+</tr>
+{% endfor %}
+</table>
+
 </body>
-</html>s
+</html>
