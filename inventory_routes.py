@@ -145,82 +145,7 @@ def inventory_page():
         # Convert to list for template (sorted by name)
         lens_totals_list = [{'name': k, 'total': v} for k, v in sorted(lens_totals.items())]
 
-        # ==========================
-        # FILTERED RECENT TRANSACTIONS
-        # ==========================
-        rt_lens_id = request.args.get("rt_lens_id")
-        rt_doc_id = request.args.get("rt_doc_id")
-        rt_power = request.args.get("rt_power", "").strip()
-        rt_type = request.args.get("rt_type")
-        rt_date = request.args.get("rt_date")
-
-        # Build conditions for both IN and OUT queries
-        in_conditions = []
-        out_conditions = []
-        in_params = []
-        out_params = []
-
-        if rt_lens_id:
-            in_conditions.append("si.lens_id = %s")
-            out_conditions.append("so.lens_id = %s")
-            in_params.append(int(rt_lens_id))
-            out_params.append(int(rt_lens_id))
-        
-        if rt_power:
-            in_conditions.append("si.power = %s")
-            out_conditions.append("so.power = %s")
-            in_params.append(rt_power)
-            out_params.append(rt_power)
-
-        if rt_date:
-            in_conditions.append("DATE(si.created_at) = %s")
-            out_conditions.append("DATE(so.created_at) = %s")
-            in_params.append(rt_date)
-            out_params.append(rt_date)
-
-        # Build IN query
-        in_query = """
-            SELECT
-                l.name AS lens_name,
-                si.power,
-                NULL::text AS doctor_name,
-                si.quantity,
-                'IN' AS action,
-                si.created_at AS date_time
-            FROM stock_in si
-            JOIN lenses l ON l.id = si.lens_id
-        """
-        if in_conditions:
-            in_query += " WHERE " + " AND ".join(in_conditions)
-
-        # Build OUT query with doctor filter
-        out_query = """
-            SELECT
-                l.name AS lens_name,
-                so.power,
-                d.name AS doctor_name,
-                so.quantity,
-                'OUT' AS action,
-                so.created_at AS date_time
-            FROM stock_out so
-            JOIN lenses l ON l.id = so.lens_id
-            LEFT JOIN doctors d ON d.id = so.doctor_id
-        """
-        
-        # Add doctor filter to OUT query if specified
-        if rt_doc_id:
-            out_conditions.append("so.doctor_id = %s")
-            out_params.append(int(rt_doc_id))
-        
-        if out_conditions:
-            out_query += " WHERE " + " AND ".join(out_conditions)
-
-        # Combine queries
-        recent_query = f"{in_query} UNION ALL {out_query} ORDER BY date_time DESC LIMIT 50"
-        recent_params = in_params + out_params
-
-        cur.execute(recent_query, recent_params)
-        recent = cur.fetchall()
+   
 
         # -------------------------
         # STAFF DELIVERY FILTER LOGIC (unchanged)
@@ -285,7 +210,6 @@ def inventory_page():
             lenses=lenses,
             doctors=doctors,
             stock=stock,
-            recent=recent,
             staff_deliveries=staff_deliveries,
             staff_list=staff_list,
             total_stock_count=total_stock_count,
@@ -444,3 +368,4 @@ def view_stock():
     finally:
         cur.close()
         con.close()
+
