@@ -1,9 +1,7 @@
-# inventory_routes.py
 from flask import Blueprint, request, jsonify, render_template, redirect, g, url_for, flash
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from database import get_db
-from datetime import datetime
 
 inventory_bp = Blueprint("inventory", __name__)
 
@@ -83,6 +81,9 @@ def add_doctor():
 # -----------------------------
 # INVENTORY PAGE
 # -----------------------------
+# -----------------------------
+# INVENTORY PAGE
+# -----------------------------
 @inventory_bp.route("/")
 def inventory_page():
     if not g.user:
@@ -103,7 +104,7 @@ def inventory_page():
         # ==========================
         # FILTERED INVENTORY STOCK
         # ==========================
-        lens_filter = request.args.get("inv_lens_id")
+        lens_filter = request.args.get("inv_lens_id")  # Changed parameter name to avoid conflict
         power_filter = request.args.get("inv_power", "").strip()
 
         stock_query = """
@@ -126,6 +127,23 @@ def inventory_page():
         
         cur.execute(stock_query, stock_params)
         stock = cur.fetchall()
+
+        # ==========================
+        # CALCULATE TOTAL COUNTS
+        # ==========================
+        # Total of all lenses in stock
+        total_stock_count = sum(s['quantity_available'] for s in stock) if stock else 0
+
+        # Group totals by lens name
+        lens_totals = {}
+        for s in stock:
+            name = s['name']
+            if name not in lens_totals:
+                lens_totals[name] = 0
+            lens_totals[name] += s['quantity_available']
+
+        # Convert to list for template (sorted by name)
+        lens_totals_list = [{'name': k, 'total': v} for k, v in sorted(lens_totals.items())]
 
         # ==========================
         # FILTERED RECENT TRANSACTIONS
@@ -155,9 +173,8 @@ def inventory_page():
             out_params.append(rt_power)
 
         if rt_date:
-            # FIXED: Proper date filtering with timezone handling
-            in_conditions.append("DATE(si.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Karachi') = %s")
-            out_conditions.append("DATE(so.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Karachi') = %s")
+            in_conditions.append("DATE(si.created_at) = %s")
+            out_conditions.append("DATE(so.created_at) = %s")
             in_params.append(rt_date)
             out_params.append(rt_date)
 
@@ -206,13 +223,12 @@ def inventory_page():
         recent = cur.fetchall()
 
         # -------------------------
-        # STAFF DELIVERY FILTER LOGIC - FIXED
+        # STAFF DELIVERY FILTER LOGIC (unchanged)
         # -------------------------
         emp = request.args.get("emp")
         emp_doc = request.args.get("emp_doc")
         emp_lens = request.args.get("emp_lens")
         emp_date = request.args.get("emp_date")
-        emp_action = request.args.get("emp_action")  # New filter for action type
 
         staff_query = """
             SELECT
@@ -222,8 +238,7 @@ def inventory_page():
                 ed.power,
                 ed.quantity,
                 ed.action,
-                ed.created_at,
-                DATE(ed.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Karachi') as delivery_date
+                ed.created_at
             FROM employee_deliveries ed
             LEFT JOIN lenses l ON l.id = ed.lens_id
             LEFT JOIN doctors d ON d.id = ed.doctor_id
@@ -238,25 +253,20 @@ def inventory_page():
 
         if emp_doc:
             conditions.append("ed.doctor_id = %s")
-            params.append(int(emp_doc))
+            params.append(emp_doc)
 
         if emp_lens:
             conditions.append("ed.lens_id = %s")
-            params.append(int(emp_lens))
+            params.append(emp_lens)
 
         if emp_date:
-            # FIXED: Proper date comparison with timezone handling
-            conditions.append("DATE(ed.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Karachi') = %s")
+            conditions.append("DATE(ed.created_at) = %s")
             params.append(emp_date)
-
-        if emp_action:
-            conditions.append("ed.action = %s")
-            params.append(emp_action)
 
         if conditions:
             staff_query += " WHERE " + " AND ".join(conditions)
 
-        staff_query += " ORDER BY ed.created_at DESC"
+        staff_query += " ORDER BY ed.created_at DESC, ed.id DESC"
 
         cur.execute(staff_query, params)
         staff_deliveries = cur.fetchall()
@@ -277,7 +287,9 @@ def inventory_page():
             stock=stock,
             recent=recent,
             staff_deliveries=staff_deliveries,
-            staff_list=staff_list
+            staff_list=staff_list,
+            total_stock_count=total_stock_count,
+            lens_totals=lens_totals_list
         )
 
     finally:
@@ -313,53 +325,45 @@ def stock_in():
 
     try:
         if transaction_type == "IN":
-            # Record stock in
+
             cur.execute("""
                 INSERT INTO stock_in (lens_id, power, quantity, added_by)
                 VALUES (%s, %s, %s, %s)
-                RETURNING id
             """, (lens_id, power, quantity, g.user['id']))
-            
-            stock_in_id = cur.fetchone()['id']
 
-            # Update inventory
             cur.execute("""
                 INSERT INTO inventory_stock (lens_id, power, quantity_available)
                 VALUES (%s, %s, %s)
                 ON CONFLICT (lens_id, power)
                 DO UPDATE SET
-                    quantity_available = inventory_stock.quantity_available + EXCLUDED.quantity_available,
-                    last_updated = CURRENT_TIMESTAMP
+                    quantity_available =
+                    inventory_stock.quantity_available + EXCLUDED.quantity_available
             """, (lens_id, power, quantity))
 
-            # FIXED: Also record IN action in employee_deliveries for tracking
             cur.execute("""
-                INSERT INTO employee_deliveries
-                (username, lens_id, doctor_id, power, quantity, action, created_at)
-                VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
-            """, (
-                g.user["username"],
-                lens_id,
-                None,  # No doctor for IN transactions
-                power,
-                quantity,
-                "IN"
-            ))
+INSERT INTO employee_deliveries
+(username, lens_id, doctor_id, power, quantity, action)
+VALUES (%s, %s, %s, %s, %s, %s)
+""", (
+    g.user["username"],
+    lens_id,
+    None,
+    power,
+    quantity,
+    "IN"
+))
 
         elif transaction_type == "OUT":
+
             doctor_id = data.get("doctor_id")
             if not doctor_id:
                 flash("Doctor is required for stock OUT", "danger")
                 return redirect(url_for("inventory.inventory_page"))
 
-            doctor_id = int(doctor_id)
-
-            # Check stock availability
             cur.execute("""
                 SELECT quantity_available
                 FROM inventory_stock
                 WHERE lens_id = %s AND power = %s
-                FOR UPDATE
             """, (lens_id, power))
 
             current = cur.fetchone()
@@ -368,31 +372,26 @@ def stock_in():
                 flash("Not enough stock available", "danger")
                 return redirect(url_for("inventory.inventory_page"))
 
-            # Record stock out
             cur.execute("""
                 INSERT INTO stock_out (lens_id, power, quantity, user_id, doctor_id, delivery_date)
                 VALUES (%s, %s, %s, %s, %s, CURRENT_DATE)
             """, (lens_id, power, quantity, g.user['id'], doctor_id))
-
-            # Record employee delivery with OUT action
             cur.execute("""
-                INSERT INTO employee_deliveries
-                (username, lens_id, doctor_id, power, quantity, action, created_at)
-                VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
-            """, (
-                g.user["username"],
-                lens_id,
-                doctor_id,
-                power,
-                quantity,
-                "OUT"
-            ))
+INSERT INTO employee_deliveries
+(username, lens_id, doctor_id, power, quantity, action)
+VALUES (%s, %s, %s, %s, %s, %s)
+""", (
+    g.user["username"],
+    lens_id,
+    doctor_id,
+    power,
+    quantity,
+    "OUT"
+))
 
-            # Update inventory
             cur.execute("""
                 UPDATE inventory_stock
-                SET quantity_available = quantity_available - %s,
-                    last_updated = CURRENT_TIMESTAMP
+                SET quantity_available = quantity_available - %s
                 WHERE lens_id = %s AND power = %s
             """, (quantity, lens_id, power))
 
@@ -409,15 +408,14 @@ def stock_in():
     finally:
         cur.close()
         con.close()
-        
-    return redirect(
-        url_for(
-            "inventory.inventory_page",
-            doctor_id=request.form.get("doctor_id") or "",
-            lens_id=request.form.get("lens_id") or "",
-            type=request.form.get("type") or ""
-        )
+        return redirect(
+    url_for(
+        "inventory.inventory_page",
+        doctor_id=request.form.get("doctor_id") or "",
+        lens_id=request.form.get("lens_id") or "",
+        type=request.form.get("type") or ""
     )
+)
 
 
 # -----------------------------
