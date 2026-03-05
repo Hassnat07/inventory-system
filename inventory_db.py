@@ -85,6 +85,22 @@ def init_db():
         )
         """)
 
+        # Employee deliveries - ENSURE action column exists
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS employee_deliveries (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            username    TEXT NOT NULL,
+            lens_id     INTEGER,
+            doctor_id   INTEGER,
+            power       TEXT,
+            quantity    REAL,
+            action      TEXT DEFAULT 'OUT',
+            created_at  TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (lens_id)   REFERENCES lenses(id),
+            FOREIGN KEY (doctor_id) REFERENCES doctors(id)
+        )
+        """)
+
         # Safe column addition
         def add_column(table, col_name, col_def):
             cur.execute(f"PRAGMA table_info({table})")
@@ -94,5 +110,16 @@ def init_db():
 
         add_column("inventory_stock", "power",        "TEXT NOT NULL DEFAULT ''")
         add_column("inventory_stock", "last_updated", "TEXT DEFAULT (datetime('now'))")
+        add_column("employee_deliveries", "action",   "TEXT DEFAULT 'OUT'")
+
+        # PERFORMANCE INDEXES
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_stock_in_lens_power ON stock_in(lens_id, power)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_stock_out_lens_power ON stock_out(lens_id, power)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_stock_in_created ON stock_in(created_at)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_stock_out_created ON stock_out(created_at)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_emp_del_username ON employee_deliveries(username)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_emp_del_created ON employee_deliveries(created_at)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_emp_del_action ON employee_deliveries(action)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_inv_stock_lens ON inventory_stock(lens_id)")
 
         con.commit()
