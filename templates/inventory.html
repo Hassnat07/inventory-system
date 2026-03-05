@@ -536,7 +536,9 @@
                 {{ row['action'] }}
             </span>
         </td>
-        <td data-label="Handover Date">{{ row['created_at'] }}</td>
+        <td data-label="Handover Date">
+{{ row['created_at'].strftime('%Y-%m-%d %H:%M') }}
+</td>
     </tr>
     {% endfor %}
 {% else %}
@@ -592,6 +594,7 @@ function toggleRows(rowClass, btn) {
 
 </body>
 </html>
+
 
 
 
