@@ -81,9 +81,6 @@ def add_doctor():
 # -----------------------------
 # INVENTORY PAGE
 # -----------------------------
-# -----------------------------
-# INVENTORY PAGE
-# -----------------------------
 @inventory_bp.route("/")
 def inventory_page():
     if not g.user:
@@ -104,7 +101,7 @@ def inventory_page():
         # ==========================
         # FILTERED INVENTORY STOCK
         # ==========================
-        lens_filter = request.args.get("inv_lens_id")  # Changed parameter name to avoid conflict
+        lens_filter = request.args.get("inv_lens_id")
         power_filter = request.args.get("inv_power", "").strip()
 
         stock_query = """
@@ -118,43 +115,33 @@ def inventory_page():
         if lens_filter:
             stock_query += " AND l.id = %s"
             stock_params.append(int(lens_filter))
-        
+
         if power_filter:
             stock_query += " AND s.power = %s"
             stock_params.append(power_filter)
 
         stock_query += " ORDER BY l.name, s.power"
-        
+
         cur.execute(stock_query, stock_params)
         stock = cur.fetchall()
 
         # ==========================
         # CALCULATE TOTAL COUNTS
         # ==========================
-        # Total of all lenses in stock
         total_stock_count = sum(s['quantity_available'] for s in stock) if stock else 0
 
-        # Group totals by lens name
-        lens_totals = {}
+        lens_totals: dict[str, float] = {}
         for s in stock:
             name = s['name']
             if name not in lens_totals:
                 lens_totals[name] = 0
             lens_totals[name] += s['quantity_available']
 
-        # Convert to list for template (sorted by name)
         lens_totals_list = [{'name': k, 'total': v} for k, v in sorted(lens_totals.items())]
 
-   
-
         # -------------------------
-        # STAFF DELIVERY FILTER LOGIC (unchanged)
+        # STAFF DELIVERY FILTER LOGIC
         # -------------------------
-        emp = request.args.get("emp")
-        emp_doc = request.args.get("emp_doc")
-        emp_lens = request.args.get("emp_lens")
-        emp_date = request.args.get("emp_date")
-
         staff_query = """
             SELECT
                 ed.username,
@@ -172,9 +159,20 @@ def inventory_page():
         conditions = []
         params = []
 
-        if emp:
+        # If user is NOT admin → show only their records
+        if g.user["role"] != "admin":
+            conditions.append("ed.username = %s")
+            params.append(g.user["username"])
+
+        # Admin can filter staff
+        emp = request.args.get("emp")
+        if emp and g.user["role"] == "admin":
             conditions.append("ed.username = %s")
             params.append(emp)
+
+        emp_doc = request.args.get("emp_doc")
+        emp_lens = request.args.get("emp_lens")
+        emp_date = request.args.get("emp_date")
 
         if emp_doc:
             conditions.append("ed.doctor_id = %s")
@@ -370,5 +368,4 @@ def view_stock():
     finally:
         cur.close()
         con.close()
-
 
