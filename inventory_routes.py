@@ -232,9 +232,9 @@ def stock_in():
     data = request.form
 
     try:
-        lens_id = int(data.get("lens_id"))
+        lens_id = int(data.get("lens_id", ""))
         power = data.get("power", "").strip()
-        quantity = float(data.get("quantity"))
+        quantity = float(data.get("quantity", ""))
         transaction_type = data.get("type", "IN").upper()
 
         if quantity <= 0:
@@ -251,8 +251,8 @@ def stock_in():
         if transaction_type == "IN":
 
             cur.execute("""
-                INSERT INTO stock_in (lens_id, power, quantity, added_by)
-                VALUES (%s, %s, %s, %s)
+                INSERT INTO stock_in (lens_id, power, quantity, added_by, created_at)
+                VALUES (%s, %s, %s, %s, NOW())
             """, (lens_id, power, quantity, g.user['id']))
 
             cur.execute("""
@@ -265,17 +265,17 @@ def stock_in():
             """, (lens_id, power, quantity))
 
             cur.execute("""
-INSERT INTO employee_deliveries
-(username, lens_id, doctor_id, power, quantity, action)
-VALUES (%s, %s, %s, %s, %s, %s)
-""", (
-    g.user["username"],
-    lens_id,
-    None,
-    power,
-    quantity,
-    "IN"
-))
+                INSERT INTO employee_deliveries
+                (username, lens_id, doctor_id, power, quantity, action, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, NOW())
+            """, (
+                g.user["username"],
+                lens_id,
+                None,
+                power,
+                quantity,
+                "IN"
+            ))
 
         elif transaction_type == "OUT":
 
@@ -298,20 +298,21 @@ VALUES (%s, %s, %s, %s, %s, %s)
 
             cur.execute("""
                 INSERT INTO stock_out (lens_id, power, quantity, user_id, doctor_id, delivery_date)
-                VALUES (%s, %s, %s, %s, %s, CURRENT_DATE)
+                VALUES (%s, %s, %s, %s, %s, NOW())
             """, (lens_id, power, quantity, g.user['id'], doctor_id))
+
             cur.execute("""
-INSERT INTO employee_deliveries
-(username, lens_id, doctor_id, power, quantity, action)
-VALUES (%s, %s, %s, %s, %s, %s)
-""", (
-    g.user["username"],
-    lens_id,
-    doctor_id,
-    power,
-    quantity,
-    "OUT"
-))
+                INSERT INTO employee_deliveries
+                (username, lens_id, doctor_id, power, quantity, action, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, NOW())
+            """, (
+                g.user["username"],
+                lens_id,
+                doctor_id,
+                power,
+                quantity,
+                "OUT"
+            ))
 
             cur.execute("""
                 UPDATE inventory_stock
@@ -332,13 +333,14 @@ VALUES (%s, %s, %s, %s, %s, %s)
     finally:
         cur.close()
         con.close()
-        return redirect(
-    url_for(
-        "inventory.inventory_page",
-        doctor_id=request.form.get("doctor_id") or "",
-        lens_id=request.form.get("lens_id") or "",
-        type=request.form.get("type") or ""
-    )
+
+    return redirect(
+        url_for(
+            "inventory.inventory_page",
+            doctor_id=request.form.get("doctor_id") or "",
+            lens_id=request.form.get("lens_id") or "",
+            type=request.form.get("type") or ""
+        )
 )
 
 
@@ -368,4 +370,5 @@ def view_stock():
     finally:
         cur.close()
         con.close()
+
 
