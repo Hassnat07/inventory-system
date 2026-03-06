@@ -354,13 +354,29 @@ def low_stock_alert():
     cur = con.cursor(cursor_factory=RealDictCursor)
 
     try:
-        cur.execute("""
+        # Get all unique lens names for dropdown
+        cur.execute("SELECT DISTINCT name FROM lenses ORDER BY name")
+        all_lenses = [row['name'] for row in cur.fetchall()]
+
+        # Get filter parameter
+        lens_filter = request.args.get('lens_filter', '').strip()
+
+        # Build query with optional filter
+        query = """
             SELECT l.name, s.power, s.quantity_available
             FROM inventory_stock s
             JOIN lenses l ON l.id = s.lens_id
             WHERE s.quantity_available > 0
-            ORDER BY l.name, s.power
-        """)
+        """
+        params = []
+        
+        if lens_filter:
+            query += " AND l.name = %s"
+            params.append(lens_filter)
+        
+        query += " ORDER BY l.name, s.power"
+        
+        cur.execute(query, params)
         stock = cur.fetchall()
 
         # Apply alert rules
@@ -386,7 +402,12 @@ def low_stock_alert():
                 'alert': alert
             })
 
-        return render_template("low_stock_alert.html", items=alerted_items)
+        return render_template(
+            "low_stock_alert.html", 
+            items=alerted_items,
+            all_lenses=all_lenses,
+            selected_lens=lens_filter
+        )
 
     finally:
         cur.close()
@@ -419,4 +440,5 @@ def view_stock():
     finally:
         cur.close()
         con.close()
+
 
