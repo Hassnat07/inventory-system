@@ -20,9 +20,16 @@
             padding: 15px;
         }
         .container { max-width: 1200px; margin: 0 auto; }
-        h1 { color: var(--primary); font-size: 22px; margin-bottom: 5px; }
+        h1 { color: var(--primary); font-size: 22px; margin-bottom: 5px; display: flex; align-items: center; gap: 10px; }
         .subtitle { color: #64748b; margin-bottom: 20px; font-size: 13px; }
         
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
         .back-btn {
             background: var(--primary);
             color: white;
@@ -30,9 +37,61 @@
             padding: 10px 20px;
             border-radius: 8px;
             cursor: pointer;
-            margin-bottom: 20px;
             text-decoration: none;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pdf-btn {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .pdf-btn:hover {
+            background: #b91c1c;
+        }
+
+        .filter-section {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        select, input {
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            font-size: 14px;
+            min-width: 200px;
+        }
+
+        .filter-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
         }
 
         .rules-box {
@@ -88,6 +147,12 @@
             color: #166534;
         }
 
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
         @media (max-width: 600px) {
             table, thead, tbody, th, td, tr { display: block; }
             thead tr { position: absolute; top: -9999px; left: -9999px; }
@@ -108,6 +173,14 @@
                 content: attr(data-label);
             }
             tr.alert-red { border: 2px solid var(--danger); }
+            
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            select, input, .filter-btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -116,7 +189,28 @@
     <h1>⚠️ Low Stock Alert</h1>
     <div class="subtitle">Items highlighted in red need immediate restocking</div>
     
-    <a href="{{ url_for('inventory.inventory_page') }}" class="back-btn">← Back to Inventory</a>
+    <div class="header-actions">
+        <a href="{{ url_for('inventory.inventory_page') }}" class="back-btn">← Back to Inventory</a>
+        <button type="button" class="pdf-btn" onclick="generatePDF()">📄 Download PDF</button>
+    </div>
+
+    <!-- FILTER SECTION -->
+    <div class="filter-section">
+        <form class="filter-row" method="GET" action="{{ url_for('inventory.low_stock_alert') }}">
+            <select name="lens_filter">
+                <option value="">All Lens Brands</option>
+                {% for lens in all_lenses %}
+                    <option value="{{ lens }}" {% if selected_lens == lens %}selected{% endif %}>
+                        {{ lens }}
+                    </option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="filter-btn">Filter</button>
+            {% if selected_lens %}
+                <a href="{{ url_for('inventory.low_stock_alert') }}" style="color: #64748b; text-decoration: none; font-size: 13px;">Clear Filter</a>
+            {% endif %}
+        </form>
+    </div>
 
     <div class="rules-box">
         <strong>Alert Rules:</strong><br>
@@ -126,7 +220,7 @@
         • Power 24-37: Alert if quantity < 7
     </div>
 
-    <table>
+    <table id="alert-table">
         <thead>
             <tr>
                 <th>Lens Brand</th>
@@ -136,22 +230,52 @@
             </tr>
         </thead>
         <tbody>
-            {% for item in items %}
-            <tr class="{{ 'alert-red' if item.alert else '' }}">
-                <td data-label="Lens Brand"><strong>{{ item.name }}</strong></td>
-                <td data-label="Power">{{ item.power }}</td>
-                <td data-label="Quantity">{{ item.quantity }} units</td>
-                <td data-label="Status">
-                    {% if item.alert %}
-                    <span class="badge badge-danger">LOW STOCK</span>
-                    {% else %}
-                    <span class="badge badge-ok">OK</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
+            {% if items %}
+                {% for item in items %}
+                <tr class="{{ 'alert-red' if item.alert else '' }}">
+                    <td data-label="Lens Brand"><strong>{{ item.name }}</strong></td>
+                    <td data-label="Power">{{ item.power }}</td>
+                    <td data-label="Quantity">{{ item.quantity }} units</td>
+                    <td data-label="Status">
+                        {% if item.alert %}
+                        <span class="badge badge-danger">LOW STOCK</span>
+                        {% else %}
+                        <span class="badge badge-ok">OK</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="4" class="no-data">No items found for the selected filter</td>
+                </tr>
+            {% endif %}
         </tbody>
     </table>
 </div>
+
+<!-- PDF Generation using html2pdf.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+function generatePDF() {
+    const element = document.querySelector('.container');
+    const opt = {
+        margin: 10,
+        filename: 'low-stock-alert-{{ selected_lens or "all" }}.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    
+    // Temporarily hide buttons for clean PDF
+    const buttons = document.querySelectorAll('.back-btn, .pdf-btn, .filter-section');
+    buttons.forEach(btn => btn.style.display = 'none');
+    
+    html2pdf().set(opt).from(element).save().then(() => {
+        // Restore buttons after PDF generation
+        buttons.forEach(btn => btn.style.display = '');
+    });
+}
+</script>
 </body>
 </html>
