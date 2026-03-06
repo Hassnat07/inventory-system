@@ -339,6 +339,15 @@
             .forEach(el => el.remove());
     }, 5000);
     </script>
+    <!-- LOW STOCK ALERT BUTTON -->
+<div style="margin-bottom: 20px;">
+    <a href="{{ url_for('inventory.low_stock_alert') }}" style="text-decoration: none;">
+        <button type="button" style="background: #dc2626; width: 100%; padding: 15px; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <span>⚠️</span>
+            <span>View Low Stock Alerts</span>
+        </button>
+    </a>
+</div>
 
     <!-- ──────────────────────────────────────────────── -->
     <!--                  ADMIN ONLY SECTIONS             -->
