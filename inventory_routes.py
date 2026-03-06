@@ -341,6 +341,57 @@ def stock_in():
         )
 )
 
+# -----------------------------
+# low-stock-alert
+# -----------------------------
+
+@inventory_bp.route("/low-stock-alert")
+def low_stock_alert():
+    if not g.user:
+        return redirect(url_for("auth.login"))
+
+    con = get_db()
+    cur = con.cursor(cursor_factory=RealDictCursor)
+
+    try:
+        cur.execute("""
+            SELECT l.name, s.power, s.quantity_available
+            FROM inventory_stock s
+            JOIN lenses l ON l.id = s.lens_id
+            WHERE s.quantity_available > 0
+            ORDER BY l.name, s.power
+        """)
+        stock = cur.fetchall()
+
+        # Apply alert rules
+        alerted_items = []
+        for item in stock:
+            power = float(item['power']) if item['power'] else 0
+            qty = item['quantity_available']
+            alert = False
+
+            if 1 <= power <= 5 and qty < 5:
+                alert = True
+            elif 5 < power <= 18 and qty < 15:
+                alert = True
+            elif 18 < power <= 23 and qty < 50:
+                alert = True
+            elif 23 < power <= 37 and qty < 7:
+                alert = True
+
+            alerted_items.append({
+                'name': item['name'],
+                'power': item['power'],
+                'quantity': qty,
+                'alert': alert
+            })
+
+        return render_template("low_stock_alert.html", items=alerted_items)
+
+    finally:
+        cur.close()
+        con.close()
+
 
 # -----------------------------
 # API STOCK
