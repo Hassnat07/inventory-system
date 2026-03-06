@@ -483,46 +483,51 @@
     <!-- ──────────────────────────────────────────────── -->
     <!--             STAFF DELIVERY ACTIVITY (admin)      -->
     <!-- ──────────────────────────────────────────────── -->
+<section id="staff-delivery">
+<h2>Staff Delivery Activity</h2>
 
-    <section id="staff-delivery">
-        <h2>Staff Delivery Activity</h2>
+<form class="filter-row" method="GET" action="{{ url_for('inventory.inventory_page') }}#staff-delivery">
 
-       <form class="filter-row" method="GET" action="{{ url_for('inventory.inventory_page') }}#staff-delivery">
+{% if user.role == 'admin' %}
 <select name="emp">
-    <option value="">All Staff</option>
+<option value="">All Staff</option>
 
-    {% for staff in staff_list %}
-        <option value="{{ staff['username'] }}"
-            {% if request.args.get('emp') == staff['username'] %}selected{% endif %}>
-            {{ staff['username'] }}
-        </option>
-    {% endfor %}
+{% for staff in staff_list %}
+<option value="{{ staff['username'] }}"
+{% if request.args.get('emp') == staff['username'] %}selected{% endif %}>
+{{ staff['username'] }}
+</option>
+{% endfor %}
 </select>
+{% endif %}
 
-            <select name="emp_doc">
-    <option value="">All Doctors</option>
-    {% for d in doctors %}
-        <option value="{{ d['id'] }}"
-            {% if request.args.get('emp_doc') == d['id']|string %}selected{% endif %}>
-            {{ d['name'] }}
-        </option>
-    {% endfor %}
+<select name="emp_doc">
+<option value="">All Doctors</option>
+{% for d in doctors %}
+<option value="{{ d['id'] }}"
+{% if request.args.get('emp_doc') == d['id']|string %}selected{% endif %}>
+{{ d['name'] }}
+</option>
+{% endfor %}
 </select>
 
 <select name="emp_lens">
-    <option value="">All Lenses</option>
-    {% for l in lenses %}
-        <option value="{{ l['id'] }}"
-            {% if request.args.get('emp_lens') == l['id']|string %}selected{% endif %}>
-            {{ l['name'] }}
-        </option>
-    {% endfor %}
+<option value="">All Lenses</option>
+{% for l in lenses %}
+<option value="{{ l['id'] }}"
+{% if request.args.get('emp_lens') == l['id']|string %}selected{% endif %}>
+{{ l['name'] }}
+</option>
+{% endfor %}
 </select>
 
-            <input type="date" name="emp_date" value="{{ request.args.get('emp_date','') }}">
+<input type="date" name="emp_date" value="{{ request.args.get('emp_date','') }}">
 
-            <button type="submit" style="background: var(--secondary); min-width: 80px;">Search</button>
-        </form>
+<button type="submit" style="background: var(--secondary); min-width: 80px;">
+Search
+</button>
+
+</form>
 
         <div class="table-container">
             <table id="staff-delivery-table">
@@ -622,6 +627,5 @@ $(document).ready(function() {
 
 </body>
 </html>
-
 
 
