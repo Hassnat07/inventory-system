@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Documentation{% endblock %}
+{% block breadcrumb %}<span>/</span><a href="/support/docs" target="_self" class="current">Documentation</a>{% endblock %}
+{% block section_label %}Support{% endblock %}
+{% block page_title %}Product Documentation{% endblock %}
+{% block page_subtitle %}User manuals, regulatory certificates, product specifications, and installation guides for all Ramay Electromedix products.{% endblock %}
+
+{% block content %}
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-5 mb-14 reveal">
+            <div class="card text-center"><div class="icon-box mx-auto"><i data-lucide="book" class="w-5 h-5"></i></div><h3 class="font-display font-bold text-base mb-2 text-[#0f172a]">User Manuals</h3><p class="text-[#475569] text-sm">Operation guides for all distributed equipment models.</p></div>
+            <div class="card text-center"><div class="icon-box mx-auto"><i data-lucide="award" class="w-5 h-5"></i></div><h3 class="font-display font-bold text-base mb-2 text-[#0f172a]">Certificates</h3><p class="text-[#475569] text-sm">CE, ISO 13485, and DRAP registration documents.</p></div>
+            <div class="card text-center"><div class="icon-box mx-auto"><i data-lucide="file-text" class="w-5 h-5"></i></div><h3 class="font-display font-bold text-base mb-2 text-[#0f172a]">Spec Sheets</h3><p class="text-[#475569] text-sm">Technical specifications and product data sheets.</p></div>
+            <div class="card text-center"><div class="icon-box mx-auto"><i data-lucide="tool" class="w-5 h-5"></i></div><h3 class="font-display font-bold text-base mb-2 text-[#0f172a]">Installation Guides</h3><p class="text-[#475569] text-sm">Step-by-step setup and commissioning instructions.</p></div>
+        </div>
+
+        <div class="bg-[#0a1628] rounded-2xl p-8 text-center reveal">
+            <div class="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-4"><i data-lucide="lock" class="w-6 h-6 text-white"></i></div>
+            <h3 class="font-display font-bold text-2xl text-white mb-3">Partner Portal Access Required</h3>
+            <p class="text-blue-200/70 text-sm mb-6 max-w-md mx-auto">Full documentation library is available to verified hospital partners and distributors through our Partner Portal. Contact your account manager to request access.</p>
+            <div class="flex gap-3 justify-center flex-wrap">
+                <a href="/portal/login" class="btn-primary" target="_self"><i data-lucide="log-in" class="w-4 h-4"></i>Partner Portal Login</a>
+                <a href="/contact" target="_self" style="background:rgba(255,255,255,0.08);color:#fff;padding:11px 24px;border-radius:8px;font-weight:600;font-size:0.85rem;display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,0.2)"><i data-lucide="mail" class="w-4 h-4"></i>Request Access</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

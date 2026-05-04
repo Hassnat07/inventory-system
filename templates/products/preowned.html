@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Pre-Owned Equipment{% endblock %}
+{% block meta_desc %}Certified pre-owned ophthalmic equipment — quality-tested, refurbished, and warranted machines at cost-effective prices across Pakistan.{% endblock %}
+
+{% block breadcrumb %}<span>/</span><a href="/products/pre-owned-equipment" target="_self" class="current">Pre-Owned Equipment</a>{% endblock %}
+{% block section_label %}Products{% endblock %}
+{% block page_title %}Pre-Owned Equipment{% endblock %}
+{% block page_subtitle %}Certified, refurbished ophthalmic machines offering hospital-grade performance at significantly reduced capital cost. Every unit inspected and warranted.{% endblock %}
+
+{% block content %}
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+
+        <div class="grid md:grid-cols-3 gap-5 mb-14 reveal">
+            <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-6 text-center">
+                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center mx-auto mb-4"><i data-lucide="search" class="w-6 h-6 text-[#1e3a8a]"></i></div>
+                <h3 class="font-display font-bold text-lg mb-2 text-[#0f172a]">Inspection</h3>
+                <p class="text-[#475569] text-sm">Full 40-point technical inspection by our biomedical engineers before any unit enters our inventory.</p>
+            </div>
+            <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-6 text-center">
+                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center mx-auto mb-4"><i data-lucide="wrench" class="w-6 h-6 text-[#1e3a8a]"></i></div>
+                <h3 class="font-display font-bold text-lg mb-2 text-[#0f172a]">Refurbishment</h3>
+                <p class="text-[#475569] text-sm">Worn components replaced with genuine parts; optics cleaned, calibrated, and returned to OEM specification.</p>
+            </div>
+            <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-6 text-center">
+                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center mx-auto mb-4"><i data-lucide="shield-check" class="w-6 h-6 text-[#1e3a8a]"></i></div>
+                <h3 class="font-display font-bold text-lg mb-2 text-[#0f172a]">Warranty</h3>
+                <p class="text-[#475569] text-sm">6-month to 1-year warranty on all certified pre-owned units, with optional AMC extension thereafter.</p>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6 mb-14 reveal">
+            <div class="card">
+                <div class="icon-box"><i data-lucide="cpu" class="w-5 h-5"></i></div>
+                <h3 class="font-display font-bold text-lg mb-2 text-[#0f172a]">Available Equipment Types</h3>
+                <ul class="space-y-2.5 text-sm text-[#475569]">
+                    <li class="flex gap-2"><i data-lucide="check-circle" class="w-4 h-4 text-[#1e3a8a] flex-shrink-0 mt-0.5"></i>Phacoemulsification systems</li>
+                    <li class="flex gap-2"><i data-lucide="check-circle" class="w-4 h-4 text-[#1e3a8a] flex-shrink-0 mt-0.5"></i>Slit lamps &amp; biomicroscopes</li>
+                    <li class="flex gap-2"><i data-lucide="check-circle" class="w-4 h-4 text-[#1e3a8a] flex-shrink-0 mt-0.5"></i>Autorefractors &amp; keratometers</li>
+                    <li class="flex gap-2"><i data-lucide="check-circle" class="w-4 h-4 text-[#1e3a8a] flex-shrink-0 mt-0.5"></i>Indirect ophthalmoscopes</li>
+                    <li class="flex gap-2"><i data-lucide="check-circle" class="w-4 h-4 text-[#1e3a8a] flex-shrink-0 mt-0.5"></i>YAG laser systems</li>
+                    <li class="flex gap-2"><i data-lucide="check-circle" class="w-4 h-4 text-[#1e3a8a] flex-shrink-0 mt-0.5"></i>Operating microscopes</li>
+                </ul>
+            </div>
+            <div class="bg-[#0a1628] rounded-2xl p-8 flex flex-col justify-between">
+                <div>
+                    <div class="tag mb-3" style="background:rgba(59,130,246,0.15);color:#93c5fd;border-color:rgba(59,130,246,0.2)">Cost Saving up to 60%</div>
+                    <h3 class="font-display font-bold text-2xl text-white mb-3">Hospital-Grade Performance. Budget-Friendly Price.</h3>
+                    <p class="text-blue-200/70 text-sm mb-6">Ideal for district hospitals, private clinics, and institutions expanding their ophthalmology capacity without large capital outlay.</p>
+                </div>
+                <a href="/contact" class="btn-primary self-start" target="_self"><i data-lucide="mail" class="w-4 h-4"></i>Enquire About Stock</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Distribution Network{% endblock %}
+{% block breadcrumb %}<span>/</span><a href="/network" target="_self" class="current">Distribution Network</a>{% endblock %}
+{% block section_label %}Company{% endblock %}
+{% block page_title %}Distribution Network{% endblock %}
+{% block page_subtitle %}A nationwide logistics and service network covering Punjab, Sindh, KPK, and Balochistan — ensuring timely delivery to every partner hospital.{% endblock %}
+
+{% block content %}
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-5 mb-14 reveal">
+            <div class="card"><div class="icon-box"><i data-lucide="building-2" class="w-5 h-5"></i></div><h3 class="font-display font-bold text-base mb-1 text-[#0f172a]">Lahore</h3><div class="tag mb-3">Headquarters</div><p class="text-[#475569] text-sm">Main office, primary warehouse, and biomedical service centre. All national dispatches originate from our Lahore facility.</p></div>
+            <div class="card"><div class="icon-box"><i data-lucide="map-pin" class="w-5 h-5"></i></div><h3 class="font-display font-bold text-base mb-1 text-[#0f172a]">Faisalabad</h3><div class="tag mb-3">Regional Office</div><p class="text-[#475569] text-sm">Dedicated sales and service team covering central Punjab, including Sargodha, Jhang, and Chiniot districts.</p></div>
+            <div class="card"><div class="icon-box"><i data-lucide="map-pin" class="w-5 h-5"></i></div><h3 class="font-display font-bold text-base mb-1 text-[#0f172a]">Multan</h3><div class="tag mb-3">Distribution Hub</div><p class="text-[#475569] text-sm">Southern Punjab hub serving Multan, Bahawalpur, DG Khan, and Dera Ismail Khan corridors.</p></div>
+            <div class="card"><div class="icon-box"><i data-lucide="map-pin" class="w-5 h-5"></i></div><h3 class="font-display font-bold text-base mb-1 text-[#0f172a]">Rawalpindi</h3><div class="tag mb-3">Service Centre</div><p class="text-[#475569] text-sm">Equipment installation and AMC support for Rawalpindi, Islamabad, and Hazara region hospitals.</p></div>
+        </div>
+
+        <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-8 md:p-10 reveal">
+            <div class="grid md:grid-cols-2 gap-10">
+                <div>
+                    <div class="section-label">Delivery Standards</div>
+                    <h2 class="font-display text-2xl font-bold mb-4 text-[#0f172a]">Reliable Supply Chain</h2>
+                    <div class="space-y-4">
+                        <div class="info-row"><div class="info-icon"><i data-lucide="clock" class="w-5 h-5"></i></div><div><div class="font-semibold text-sm text-[#0f172a]">24–48 Hour Dispatch</div><div class="text-[#475569] text-sm">Orders confirmed before 12:00 PM dispatched same day from Lahore warehouse.</div></div></div>
+                        <div class="info-row"><div class="info-icon"><i data-lucide="thermometer" class="w-5 h-5"></i></div><div><div class="font-semibold text-sm text-[#0f172a]">Cold-Chain Logistics</div><div class="text-[#475569] text-sm">Temperature-controlled transport for sterile IOL products and biological materials.</div></div></div>
+                        <div class="info-row"><div class="info-icon"><i data-lucide="package" class="w-5 h-5"></i></div><div><div class="font-semibold text-sm text-[#0f172a]">Consignment Stocking</div><div class="text-[#475569] text-sm">High-volume partners benefit from on-site consignment stock for uninterrupted supply.</div></div></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="section-label">Coverage</div>
+                    <h2 class="font-display text-2xl font-bold mb-4 text-[#0f172a]">Provinces Served</h2>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 rounded-xl border border-[#e2e8f0] bg-white"><span class="font-semibold text-sm text-[#0f172a]">Punjab</span><span class="tag">Primary Region</span></div>
+                        <div class="flex items-center justify-between p-3 rounded-xl border border-[#e2e8f0] bg-white"><span class="font-semibold text-sm text-[#0f172a]">Sindh</span><span class="tag">Active</span></div>
+                        <div class="flex items-center justify-between p-3 rounded-xl border border-[#e2e8f0] bg-white"><span class="font-semibold text-sm text-[#0f172a]">KPK</span><span class="tag">Active</span></div>
+                        <div class="flex items-center justify-between p-3 rounded-xl border border-[#e2e8f0] bg-white"><span class="font-semibold text-sm text-[#0f172a]">Balochistan</span><span class="tag">Active</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

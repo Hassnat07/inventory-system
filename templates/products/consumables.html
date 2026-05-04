@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Consumables{% endblock %}
+{% block meta_desc %}Ophthalmic consumables — irrigating solutions, viscoelastics, eye drops, diagnostic dyes, and accessories for ophthalmic practice in Pakistan.{% endblock %}
+
+{% block breadcrumb %}<span>/</span><a href="/products/consumables" target="_self" class="current">Consumables</a>{% endblock %}
+{% block section_label %}Products{% endblock %}
+{% block page_title %}Consumables & Accessories{% endblock %}
+{% block page_subtitle %}A comprehensive range of ophthalmic consumables supporting day-to-day clinical and surgical practice across Pakistan's eye-care institutions.{% endblock %}
+
+{% block content %}
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-5 reveal">
+            <div class="card"><div class="icon-box"><i data-lucide="droplets" class="w-5 h-5"></i></div><h3 class="font-display font-bold text-base mb-2 text-[#0f172a]">OVDs</h3><p class="text-[#475569] text-sm">Cohesive and dispersive ophthalmic viscosurgical devices for anterior chamber protection during surgery.</p></div>
+            <div class="card"><div class="icon-box"><i data-lucide="flask-conical" class="w-5 h-5"></i></div><h3 class="font-display font-bold text-base mb-2 text-[#0f172a]">BSS &amp; Irrigating Solutions</h3><p class="text-[#475569] text-sm">Balanced salt solution and specialised irrigating fluids maintaining intraoperative ocular homeostasis.</p></div>
+            <div class="card"><div class="icon-box"><i data-lucide="eye-off" class="w-5 h-5"></i></div><h3 class="font-display font-bold text-base mb-2 text-[#0f172a]">Diagnostic Dyes</h3><p class="text-[#475569] text-sm">Trypan blue, fluorescein strips, and rose bengal for anterior segment staining and diagnostic procedures.</p></div>
+            <div class="card"><div class="icon-box"><i data-lucide="syringe" class="w-5 h-5"></i></div><h3 class="font-display font-bold text-base mb-2 text-[#0f172a]">Ophthalmic Injections</h3><p class="text-[#475569] text-sm">Intravitreal, subconjunctival, and retrobulbar injection preparations sourced from certified manufacturers.</p></div>
+            <div class="card"><div class="icon-box"><i data-lucide="eye" class="w-5 h-5"></i></div><h3 class="font-display font-bold text-base mb-2 text-[#0f172a]">Eye Drops</h3><p class="text-[#475569] text-sm">Mydriatics, miotics, antibiotics, anti-inflammatories, and IOP-lowering agents for routine clinical use.</p></div>
+            <div class="card"><div class="icon-box"><i data-lucide="filter" class="w-5 h-5"></i></div><h3 class="font-display font-bold text-base mb-2 text-[#0f172a]">Filters &amp; Accessories</h3><p class="text-[#475569] text-sm">Silicone oils, gas tamponades, and vitreoretinal surgical accessories for posterior segment work.</p></div>
+            <div class="card"><div class="icon-box"><i data-lucide="contact-2" class="w-5 h-5"></i></div><h3 class="font-display font-bold text-base mb-2 text-[#0f172a]">Bandage Lenses</h3><p class="text-[#475569] text-sm">Therapeutic soft contact lenses for corneal protection and wound healing post-surgery.</p></div>
+            <div class="card"><div class="icon-box"><i data-lucide="archive" class="w-5 h-5"></i></div><h3 class="font-display font-bold text-base mb-2 text-[#0f172a]">Instrument Care</h3><p class="text-[#475569] text-sm">Enzymatic cleaners, instrument trays, and sterilisation pouches for reusable surgical sets.</p></div>
+        </div>
+
+        <div class="mt-14 bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-8 flex flex-col md:flex-row gap-8 items-center reveal">
+            <div class="flex-1">
+                <div class="section-label">Bulk Supply</div>
+                <h2 class="font-display text-2xl font-bold mb-3 text-[#0f172a]">Standing Orders &amp; Scheduled Delivery</h2>
+                <p class="text-[#475569] leading-relaxed">For high-volume hospital clients we offer scheduled delivery contracts, consignment stocking, and priority allocation to ensure uninterrupted supply of critical consumables.</p>
+            </div>
+            <a href="/contact" class="btn-primary flex-shrink-0" target="_self"><i data-lucide="mail" class="w-4 h-4"></i>Discuss Supply Contract</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

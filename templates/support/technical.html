@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Technical Support{% endblock %}
+{% block breadcrumb %}<span>/</span><a href="/support/technical" target="_self" class="current">Technical Support</a>{% endblock %}
+{% block section_label %}Support{% endblock %}
+{% block page_title %}Technical Support{% endblock %}
+{% block page_subtitle %}Our biomedical engineering team is available to assist with equipment troubleshooting, calibration, and on-site service calls.{% endblock %}
+
+{% block content %}
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="grid md:grid-cols-3 gap-6 mb-14 reveal">
+            <div class="card"><div class="icon-box"><i data-lucide="phone-call" class="w-5 h-5"></i></div><h3 class="font-display font-bold text-lg mb-2 text-[#0f172a]">Remote Support</h3><p class="text-[#475569] text-sm leading-relaxed mb-4">Phone and video-guided troubleshooting by our biomedical team. Most issues resolved within 2 hours without a site visit.</p><div class="tag">Mon – Sat  9AM–6PM</div></div>
+            <div class="card"><div class="icon-box"><i data-lucide="wrench" class="w-5 h-5"></i></div><h3 class="font-display font-bold text-lg mb-2 text-[#0f172a]">On-Site Repair</h3><p class="text-[#475569] text-sm leading-relaxed mb-4">Qualified engineers dispatched to your facility for hands-on diagnostics, component replacement, and full calibration verification.</p><div class="tag">Priority for AMC clients</div></div>
+            <div class="card"><div class="icon-box"><i data-lucide="book-open" class="w-5 h-5"></i></div><h3 class="font-display font-bold text-lg mb-2 text-[#0f172a]">Operator Training</h3><p class="text-[#475569] text-sm leading-relaxed mb-4">On-site training sessions for new equipment ensuring your clinical and nursing staff operate every machine safely and effectively.</p><div class="tag">Included with installation</div></div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8 reveal">
+            <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-8">
+                <h3 class="font-display font-bold text-xl mb-5 text-[#0f172a]">Log a Support Request</h3>
+                <form class="space-y-4" onsubmit="event.preventDefault(); alert('Support request logged. Our team will contact you within 4 hours.');">
+                    <div><label class="block text-xs font-semibold uppercase tracking-widest text-[#94a3b8] mb-2">Hospital Name</label><input type="text" class="form-input" placeholder="e.g. Mayo Hospital Lahore" required></div>
+                    <div><label class="block text-xs font-semibold uppercase tracking-widest text-[#94a3b8] mb-2">Equipment / Product</label><input type="text" class="form-input" placeholder="e.g. Phaco system, Slit lamp..." required></div>
+                    <div><label class="block text-xs font-semibold uppercase tracking-widest text-[#94a3b8] mb-2">Contact Number</label><input type="tel" class="form-input" placeholder="+92 300 000 0000" required></div>
+                    <div><label class="block text-xs font-semibold uppercase tracking-widest text-[#94a3b8] mb-2">Issue Description</label><textarea class="form-input h-24 resize-none" placeholder="Describe the problem..."></textarea></div>
+                    <button type="submit" class="btn-primary w-full justify-center py-3.5 text-sm">Submit Request</button>
+                </form>
+            </div>
+            <div class="bg-[#0a1628] rounded-2xl p-8 flex flex-col gap-5">
+                <div class="section-label" style="color:rgba(255,255,255,0.5)">Emergency Contact</div>
+                <h3 class="font-display font-bold text-2xl text-white">Urgent Breakdown?</h3>
+                <p class="text-blue-200/70 text-sm leading-relaxed">For critical equipment failures affecting active surgical sessions, call our emergency line directly. AMC contract holders receive guaranteed 4-hour on-site response.</p>
+                <div class="bg-white/5 border border-white/10 rounded-xl p-5">
+                    <div class="text-white font-bold text-lg font-display">+92 300 1234567</div>
+                    <div class="text-blue-200/60 text-xs mt-1">Emergency / Breakdown Line</div>
+                </div>
+                <a href="/support/amc" class="btn-primary self-start" target="_self"><i data-lucide="file-text" class="w-4 h-4"></i>View AMC Plans</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

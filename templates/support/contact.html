@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Contact Sales{% endblock %}
+{% block breadcrumb %}<span>/</span><a href="/contact" target="_self" class="current">Contact</a>{% endblock %}
+{% block section_label %}Support{% endblock %}
+{% block page_title %}Contact Our Team{% endblock %}
+{% block page_subtitle %}Reach our sales team for product quotations, equipment demonstrations, or to discuss a supply partnership.{% endblock %}
+
+{% block content %}
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-16">
+            <div class="reveal">
+                <div class="space-y-5 mb-10">
+                    <div class="info-row"><div class="info-icon"><i data-lucide="map-pin" class="w-5 h-5"></i></div><div><div class="font-semibold text-sm text-[#0f172a]">Registered Office</div><div class="text-[#475569] text-sm">12A Education Town, Lahore, Pakistan</div></div></div>
+                    <div class="info-row"><div class="info-icon"><i data-lucide="phone" class="w-5 h-5"></i></div><div><div class="font-semibold text-sm text-[#0f172a]">Phone</div><div class="text-[#475569] text-sm">0332 4169996</div><div class="text-[#475569] text-sm">0336 0441235</div></div></div>
+                    <div class="info-row"><div class="info-icon"><i data-lucide="mail" class="w-5 h-5"></i></div><div><div class="font-semibold text-sm text-[#0f172a]">Email</div><div class="text-[#475569] text-sm">info@ramayelectromedix.com</div><div class="text-[#475569] text-sm">sales@ramayelectromedix.com</div></div></div>
+                    <div class="info-row"><div class="info-icon"><i data-lucide="clock" class="w-5 h-5"></i></div><div><div class="font-semibold text-sm text-[#0f172a]">Business Hours</div><div class="text-[#475569] text-sm">Mon – Sat: 9:00 AM – 6:00 PM</div><div class="text-[#475569] text-sm">Sunday: Closed</div></div></div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl p-5 text-center"><div class="font-display text-2xl font-bold text-[#1e3a8a] mb-1">24h</div><div class="text-[#94a3b8] text-xs uppercase tracking-wider">Response Time</div></div>
+                    <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl p-5 text-center"><div class="font-display text-2xl font-bold text-[#1e3a8a] mb-1">100+</div><div class="text-[#94a3b8] text-xs uppercase tracking-wider">Hospital Partners</div></div>
+                </div>
+            </div>
+
+            <div class="reveal">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for cat, msg in messages %}
+                <div style="background:{% if cat=='success' %}#d1fae5;border-color:#6ee7b7;color:#065f46{% else %}#fee2e2;border-color:#fca5a5;color:#991b1b{% endif %};border:1px solid;border-radius:12px;padding:16px 20px;margin-bottom:20px;font-size:0.9rem;font-weight:500;">
+                    {{ msg }}
+                </div>
+                {% endfor %}
+                {% endwith %}
+                <form class="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-8 space-y-5 shadow-sm"
+                      method="POST" action="/contact">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="block text-xs font-semibold uppercase tracking-widest text-[#94a3b8] mb-2">First Name</label><input type="text" name="first_name" class="form-input" placeholder="John" required></div>
+                        <div><label class="block text-xs font-semibold uppercase tracking-widest text-[#94a3b8] mb-2">Last Name</label><input type="text" name="last_name" class="form-input" placeholder="Doe" required></div>
+                    </div>
+                    <div><label class="block text-xs font-semibold uppercase tracking-widest text-[#94a3b8] mb-2">Email</label><input type="email" name="email" class="form-input" placeholder="john@hospital.com" required></div>
+                    <div><label class="block text-xs font-semibold uppercase tracking-widest text-[#94a3b8] mb-2">Hospital / Organisation</label><input type="text" name="organisation" class="form-input" placeholder="Hospital Name"></div>
+                    <div><label class="block text-xs font-semibold uppercase tracking-widest text-[#94a3b8] mb-2">Requirement</label><select name="requirement" class="form-input"><option>Product Quotation</option><option>Equipment Demo</option><option>Service Request</option><option>Partnership Inquiry</option><option>Other</option></select></div>
+                    <div><label class="block text-xs font-semibold uppercase tracking-widest text-[#94a3b8] mb-2">Message</label><textarea name="message" class="form-input h-28 resize-none" placeholder="Tell us about your requirements..."></textarea></div>
+                    <button type="submit" class="btn-primary w-full justify-center py-3.5 text-sm">Send Inquiry</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

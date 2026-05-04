@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Surgical Instruments{% endblock %}
+{% block meta_desc %}Ophthalmic surgical instruments — microsurgical tools, sutures, drapes, and consumables supplied to hospitals across Pakistan.{% endblock %}
+
+{% block breadcrumb %}<span>/</span><a href="/products/surgical-instruments" target="_self" class="current">Surgical Instruments</a>{% endblock %}
+{% block section_label %}Products{% endblock %}
+{% block page_title %}Surgical Instruments{% endblock %}
+{% block page_subtitle %}Complete range of disposable and reusable ophthalmic surgical instruments for cataract, vitreoretinal, and anterior segment procedures.{% endblock %}
+
+{% block content %}
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 reveal">
+            {% for item in [
+                ("scissors","Microsurgical Instruments","Forceps, scissors, cannulas, and speculums manufactured to ISO tolerances for precision ophthalmic surgery."),
+                ("thread","Sutures & Needles","Absorbable and non-absorbable ophthalmic sutures with atraumatic needles in 7-0 through 11-0 gauges."),
+                ("package","Surgical Drapes","Single-use sterile drapes and eye aperture sheets ensuring a contamination-free operating field."),
+                ("droplets","OVDs & BSS","Ophthalmic viscosurgical devices and balanced salt solutions for anterior chamber protection.")
+            ] %}
+            <div class="card">
+                <div class="icon-box"><i data-lucide="{{ item[0] }}" class="w-5 h-5"></i></div>
+                <h3 class="font-display font-bold text-base mb-2 text-[#0f172a]">{{ item[1] }}</h3>
+                <p class="text-[#475569] text-sm leading-relaxed">{{ item[2] }}</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-14 grid md:grid-cols-2 gap-8 reveal">
+            <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-8">
+                <div class="section-label">Product Standards</div>
+                <h3 class="font-display font-bold text-2xl mb-5 text-[#0f172a]">Quality You Can Trust</h3>
+                <div class="space-y-4">
+                    <div class="info-row"><div class="info-icon"><i data-lucide="award" class="w-5 h-5"></i></div><div><div class="font-semibold text-sm text-[#0f172a]">ISO 13485 Certified</div><div class="text-[#475569] text-sm">Manufacturers hold medical device quality management certification.</div></div></div>
+                    <div class="info-row"><div class="info-icon"><i data-lucide="shield-check" class="w-5 h-5"></i></div><div><div class="font-semibold text-sm text-[#0f172a]">DRAP Registered</div><div class="text-[#475569] text-sm">All items registered with the Drug Regulatory Authority of Pakistan.</div></div></div>
+                    <div class="info-row"><div class="info-icon"><i data-lucide="package" class="w-5 h-5"></i></div><div><div class="font-semibold text-sm text-[#0f172a]">Sterile Packaging</div><div class="text-[#475569] text-sm">EO or gamma-sterilized, individually packed for single-use safety.</div></div></div>
+                </div>
+            </div>
+            <div class="bg-[#0a1628] rounded-2xl p-8 flex flex-col justify-between">
+                <div>
+                    <h3 class="font-display font-bold text-2xl text-white mb-3">Need a Custom Surgical Pack?</h3>
+                    <p class="text-blue-200/70 text-sm leading-relaxed mb-6">We can assemble customised surgical packs tailored to your hospital's protocol and procedure volume. Contact our sales team for a bespoke quotation.</p>
+                </div>
+                <a href="/contact" class="btn-primary self-start" target="_self"><i data-lucide="mail" class="w-4 h-4"></i>Contact Sales</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

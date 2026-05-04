@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}AMC Services{% endblock %}
+{% block breadcrumb %}<span>/</span><a href="/support/amc" target="_self" class="current">AMC Services</a>{% endblock %}
+{% block section_label %}Support{% endblock %}
+{% block page_title %}Annual Maintenance Contracts{% endblock %}
+{% block page_subtitle %}Protect your capital equipment investment with comprehensive AMC plans — scheduled servicing, priority breakdown response, and genuine spare parts.{% endblock %}
+
+{% block content %}
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="grid md:grid-cols-3 gap-6 mb-14 reveal">
+            <div class="card">
+                <div class="icon-box"><i data-lucide="wrench" class="w-5 h-5"></i></div>
+                <div class="tag mb-3">Basic</div>
+                <h3 class="font-display font-bold text-xl mb-3 text-[#0f172a]">Standard AMC</h3>
+                <ul class="space-y-2.5 text-sm text-[#475569]">
+                    <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-[#1e3a8a] flex-shrink-0"></i>2× annual preventive maintenance visits</li>
+                    <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-[#1e3a8a] flex-shrink-0"></i>Remote phone support</li>
+                    <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-[#1e3a8a] flex-shrink-0"></i>Labour covered; parts billed separately</li>
+                    <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-[#1e3a8a] flex-shrink-0"></i>48-hour on-site response</li>
+                </ul>
+            </div>
+            <div class="card" style="border-color:#1e3a8a; box-shadow:0 0 0 1px #1e3a8a14;">
+                <div class="icon-box" style="background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#fff;"><i data-lucide="shield-check" class="w-5 h-5"></i></div>
+                <div class="tag mb-3" style="background:#1e3a8a;color:#fff;border-color:#1e3a8a;">Recommended</div>
+                <h3 class="font-display font-bold text-xl mb-3 text-[#0f172a]">Comprehensive AMC</h3>
+                <ul class="space-y-2.5 text-sm text-[#475569]">
+                    <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-[#1e3a8a] flex-shrink-0"></i>4× annual preventive maintenance visits</li>
+                    <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-[#1e3a8a] flex-shrink-0"></i>Remote + on-site support</li>
+                    <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-[#1e3a8a] flex-shrink-0"></i>Labour &amp; wear parts included</li>
+                    <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-[#1e3a8a] flex-shrink-0"></i>24-hour on-site response</li>
+                    <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-[#1e3a8a] flex-shrink-0"></i>Loan equipment during repair</li>
+                </ul>
+            </div>
+            <div class="card">
+                <div class="icon-box"><i data-lucide="star" class="w-5 h-5"></i></div>
+                <div class="tag mb-3">Enterprise</div>
+                <h3 class="font-display font-bold text-xl mb-3 text-[#0f172a]">Premium AMC</h3>
+                <ul class="space-y-2.5 text-sm text-[#475569]">
+                    <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-[#1e3a8a] flex-shrink-0"></i>Unlimited service calls</li>
+                    <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-[#1e3a8a] flex-shrink-0"></i>All parts &amp; labour included</li>
+                    <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-[#1e3a8a] flex-shrink-0"></i>4-hour emergency response</li>
+                    <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-[#1e3a8a] flex-shrink-0"></i>Dedicated account engineer</li>
+                    <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-[#1e3a8a] flex-shrink-0"></i>Annual performance reporting</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-8 flex flex-col md:flex-row gap-8 items-center reveal">
+            <div class="flex-1">
+                <div class="section-label">Get a Quote</div>
+                <h2 class="font-display text-2xl font-bold mb-3 text-[#0f172a]">Request an AMC Proposal</h2>
+                <p class="text-[#475569] leading-relaxed">Send us your equipment list and we will prepare a tailored AMC proposal within 48 hours.</p>
+            </div>
+            <a href="/contact" class="btn-primary flex-shrink-0" target="_self"><i data-lucide="file-text" class="w-4 h-4"></i>Request AMC Proposal</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
