@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+{% block title %}{{ item.name }}{% endblock %}
+{% block meta_desc %}{{ item.description or item.name }} — Ramay Electromedix{% endblock %}
+
+{% block breadcrumb %}
+    <span>›</span><a href="/catalog" target="_self">Catalogs</a>
+    <span>›</span><span class="current">{{ item.name }}</span>
+{% endblock %}
+{% block section_label %}{{ item.category }}{% endblock %}
+{% block page_title %}{{ item.name }}{% endblock %}
+{% block page_subtitle %}{% if item.model_no %}Model: {{ item.model_no }}{% endif %}{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .detail-wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 20px 80px;
+    }
+
+    /* ── Back link ── */
+    .back-link {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 0.82rem; font-weight: 600; color: #1e3a8a;
+        text-decoration: none; padding: 8px 0; margin-bottom: 32px;
+        transition: gap 0.2s;
+    }
+    .back-link:hover { gap: 10px; }
+
+    /* ── Layout ── */
+    .detail-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 52px;
+        align-items: start;
+    }
+    @media (max-width: 768px) {
+        .detail-layout {
+            grid-template-columns: 1fr;
+            gap: 28px;
+        }
+    }
+
+    /* ── Gallery ── */
+    .gallery-wrap { position: relative; }
+
+    .gallery-slider {
+        overflow: hidden;
+        border-radius: 14px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        position: relative;
+        touch-action: pan-y;
+    }
+    .gallery-track {
+        display: flex;
+        transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .gallery-slide {
+        min-width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 24px;
+        min-height: 360px;
+    }
+    @media (max-width: 768px) {
+        .gallery-slide { min-height: 260px; padding: 20px 16px; }
+    }
+    .gallery-slide img {
+        max-width: 100%;
+        max-height: 320px;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+    }
+    @media (max-width: 768px) {
+        .gallery-slide img { max-height: 220px; }
+    }
+
+    /* Arrow buttons */
+    .gallery-arrow {
+        position: absolute;
+        top: 50%; transform: translateY(-50%);
+        width: 36px; height: 36px; border-radius: 50%;
+        background: #fff; border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; z-index: 10; transition: all 0.2s;
+        color: #1e3a8a;
+    }
+    .gallery-arrow:hover { background: #1e3a8a; color: #fff; border-color: #1e3a8a; }
+    .gallery-arrow.prev { left: -14px; }
+    .gallery-arrow.next { right: -14px; }
+    .gallery-arrow.hidden { opacity: 0; pointer-events: none; }
+
+    /* Dot indicators */
+    .gallery-dots {
+        display: flex; justify-content: center; gap: 7px;
+        margin-top: 16px;
+    }
+    .gallery-dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: #cbd5e1; cursor: pointer; transition: all 0.25s;
+        border: none; padding: 0;
+    }
+    .gallery-dot.active {
+        background: #1e3a8a;
+        width: 22px;
+        border-radius: 4px;
+    }
+
+    /* Thumbnails */
+    .gallery-thumbs {
+        display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;
+    }
+    .gallery-thumb {
+        width: 60px; height: 60px; border-radius: 8px; overflow: hidden;
+        border: 2px solid #e2e8f0; cursor: pointer; transition: border-color 0.2s;
+        background: #f8fafc;
+        flex-shrink: 0;
+    }
+    .gallery-thumb img {
+        width: 100%; height: 100%; object-fit: cover;
+    }
+    .gallery-thumb.active { border-color: #1e3a8a; }
+    @media (max-width: 768px) {
+        .gallery-thumb { width: 50px; height: 50px; }
+    }
+
+    /* Counter badge */
+    .gallery-counter {
+        position: absolute; bottom: 12px; right: 12px;
+        background: rgba(15,23,42,0.55); color: #fff;
+        font-size: 0.72rem; font-weight: 600;
+        padding: 3px 10px; border-radius: 100px;
+        pointer-events: none;
+    }
+
+    /* ── Info panel ── */
+    .info-panel { padding-top: 8px; }
+
+    .cat-badge {
+        display: inline-block; padding: 4px 14px; border-radius: 100px;
+        font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
+        text-transform: uppercase; background: #eff6ff; color: #1e3a8a;
+        border: 1px solid #dbeafe; margin-bottom: 16px;
+    }
+
+    .prod-name {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.9rem; font-weight: 800; color: #0f172a;
+        line-height: 1.2; margin-bottom: 8px;
+    }
+    @media (max-width: 768px) { .prod-name { font-size: 1.4rem; } }
+
+    .prod-model {
+        font-family: monospace; font-size: 0.88rem; color: #94a3b8;
+        margin-bottom: 20px;
+    }
+
+    .section-divider {
+        height: 1px; background: #f1f5f9; margin: 20px 0;
+    }
+
+    .prod-desc {
+        font-size: 0.96rem; color: #475569; line-height: 1.85;
+        white-space: pre-line;
+    }
+
+    .enquire-box {
+        margin-top: 32px; padding: 20px 22px;
+        background: #f0f9ff; border: 1px solid #bae6fd;
+        border-radius: 14px;
+    }
+    .enquire-box strong { display: block; color: #0f172a; font-size: 0.9rem; margin-bottom: 6px; }
+    .enquire-box p { font-size: 0.83rem; color: #0369a1; margin-bottom: 14px; }
+
+    .btn-enquire {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: linear-gradient(135deg, #3b82f6, #1e3a8a);
+        color: #fff; padding: 13px 28px; border-radius: 8px;
+        font-weight: 700; font-size: 0.84rem; letter-spacing: 0.05em;
+        text-transform: uppercase; text-decoration: none;
+        transition: all 0.25s;
+        box-shadow: 0 4px 14px rgba(30,58,138,0.3);
+        border: none; cursor: pointer;
+    }
+    .btn-enquire:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(30,58,138,0.4);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-wrap" style="padding-top: 32px;">
+
+    <a href="/catalog" class="back-link" target="_self">
+        <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
+        Back to Catalog
+    </a>
+
+    <div class="detail-layout">
+
+        <!-- ── Image Gallery ── -->
+        <div class="gallery-wrap">
+            <div class="gallery-slider" id="slider">
+                <div class="gallery-track" id="track">
+                    {% for img in all_images %}
+                    <div class="gallery-slide">
+                        <img src="{{ url_for('static', filename='uploads/catalog/' ~ img) }}"
+                             alt="{{ item.name }} — image {{ loop.index }}" loading="{% if loop.first %}eager{% else %}lazy{% endif %}">
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if all_images|length > 1 %}
+                <div class="gallery-counter" id="counter">1 / {{ all_images|length }}</div>
+                {% endif %}
+            </div>
+
+            {% if all_images|length > 1 %}
+            <!-- Arrow buttons -->
+            <button class="gallery-arrow prev hidden" id="btn-prev" onclick="slide(-1)" aria-label="Previous">
+                <i data-lucide="chevron-left" style="width:18px;height:18px;"></i>
+            </button>
+            <button class="gallery-arrow next" id="btn-next" onclick="slide(1)" aria-label="Next">
+                <i data-lucide="chevron-right" style="width:18px;height:18px;"></i>
+            </button>
+
+            <!-- Thumbnails -->
+            <div class="gallery-thumbs" id="thumbs">
+                {% for img in all_images %}
+                <div class="gallery-thumb {% if loop.first %}active{% endif %}" onclick="goTo({{ loop.index0 }})">
+                    <img src="{{ url_for('static', filename='uploads/catalog/' ~ img) }}" alt="">
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Dots (mobile) -->
+            <div class="gallery-dots" id="dots">
+                {% for img in all_images %}
+                <button class="gallery-dot {% if loop.first %}active{% endif %}" onclick="goTo({{ loop.index0 }})"></button>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ── Info Panel ── -->
+        <div class="info-panel">
+            <div class="cat-badge">{{ item.category }}</div>
+            <h1 class="prod-name">{{ item.name }}</h1>
+            {% if item.model_no %}
+            <div class="prod-model">Model No: {{ item.model_no }}</div>
+            {% endif %}
+            <div class="section-divider"></div>
+
+            <p class="prod-desc">{{ item.description or 'Contact our sales team for full product specifications and pricing.' }}</p>
+
+            <div class="enquire-box">
+                <strong>Interested in this product?</strong>
+                <p>Our sales team is ready to provide pricing, availability, and a demonstration.</p>
+                <a href="/contact" class="btn-enquire" target="_self">
+                    <i data-lucide="mail" style="width:16px;height:16px;"></i>
+                    Enquire Now
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+(function() {
+    var total = {{ all_images|length }};
+    if (total <= 1) return;
+
+    var current = 0;
+    var track   = document.getElementById('track');
+    var counter = document.getElementById('counter');
+    var btnPrev = document.getElementById('btn-prev');
+    var btnNext = document.getElementById('btn-next');
+    var dots    = document.querySelectorAll('.gallery-dot');
+    var thumbs  = document.querySelectorAll('.gallery-thumb');
+
+    function update() {
+        track.style.transform = 'translateX(-' + (current * 100) + '%)';
+        if (counter) counter.textContent = (current + 1) + ' / ' + total;
+
+        btnPrev.classList.toggle('hidden', current === 0);
+        btnNext.classList.toggle('hidden', current === total - 1);
+
+        dots.forEach(function(d, i)   { d.classList.toggle('active', i === current); });
+        thumbs.forEach(function(t, i) { t.classList.toggle('active', i === current); });
+    }
+
+    window.slide = function(dir) {
+        current = Math.max(0, Math.min(total - 1, current + dir));
+        update();
+    };
+
+    window.goTo = function(idx) {
+        current = idx;
+        update();
+    };
+
+    // Touch swipe
+    var startX = 0;
+    var slider  = document.getElementById('slider');
+    slider.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; }, { passive: true });
+    slider.addEventListener('touchend', function(e) {
+        var diff = startX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 40) slide(diff > 0 ? 1 : -1);
+    });
+
+    // Keyboard
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowLeft')  slide(-1);
+        if (e.key === 'ArrowRight') slide(1);
+    });
+})();
+{% endblock %}
