@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Ramay Electromedix{% endblock %} | Pakistan's Premier Ophthalmic Distributor</title>
+    <meta name="description" content="{% block meta_desc %}Pakistan's leading authorized distributor of intraocular lenses, ophthalmic surgical instruments, and Japanese diagnostic equipment since 1996.{% endblock %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --navy:        #0a1628;
+            --navy-light:  #1e3a5f;
+            --royal:       #1e3a8a;
+            --royal-light: #3b82f6;
+            --accent:      #0ea5e9;
+            --bg:          #ffffff;
+            --bg-warm:     #f8fafc;
+            --text:        #0f172a;
+            --text-body:   #475569;
+            --muted:       #94a3b8;
+            --border:      #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .font-display { font-family: 'Space Grotesk', sans-serif; }
+
+        body::before {
+            content: '';
+            position: fixed; inset: 0; z-index: -2;
+            background-image: radial-gradient(circle, rgba(30,58,138,0.05) 1px, transparent 1px);
+            background-size: 32px 32px;
+            pointer-events: none;
+        }
+
+        /* ── Nav ── */
+        nav {
+            background: rgba(255,255,255,0.88);
+            backdrop-filter: blur(20px) saturate(1.2);
+            -webkit-backdrop-filter: blur(20px) saturate(1.2);
+            border-bottom: 1px solid rgba(226,232,240,0.6);
+            transition: all 0.3s;
+        }
+        nav.scrolled {
+            background: rgba(255,255,255,0.97);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .nav-link {
+            color: #475569; font-size: 0.875rem; font-weight: 500;
+            letter-spacing: 0.01em; position: relative;
+            transition: color 0.25s; padding: 6px 0;
+        }
+        .nav-link::after {
+            content: ''; position: absolute; bottom: 0; left: 0;
+            width: 0; height: 1.5px; background: var(--royal);
+            transition: width 0.3s;
+        }
+        .nav-link:hover { color: var(--royal); }
+        .nav-link:hover::after { width: 100%; }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1e3a8a);
+            color: #fff; padding: 11px 28px; border-radius: 8px;
+            font-weight: 700; font-size: 0.82rem; letter-spacing: 0.06em;
+            text-transform: uppercase; transition: all 0.3s;
+            display: inline-flex; align-items: center; gap: 8px;
+            box-shadow: 0 4px 14px rgba(30,58,138,0.3); cursor: pointer;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(30,58,138,0.4); }
+        .btn-outline {
+            border: 1.5px solid var(--royal); color: var(--royal);
+            padding: 11px 28px; border-radius: 8px;
+            font-weight: 600; font-size: 0.875rem;
+            display: inline-flex; align-items: center; gap: 8px;
+            transition: all 0.25s;
+        }
+        .btn-outline:hover { background: var(--royal); color: #fff; }
+
+        /* ── Page Hero ── */
+        .page-hero {
+            background: linear-gradient(135deg, #0a1628 0%, #1e3a5f 50%, #1e3a8a 100%);
+            padding: 100px 0 64px;
+            position: relative; overflow: hidden;
+        }
+        .page-hero::before {
+            content: '';
+            position: absolute; inset: 0;
+            background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; }
+        .breadcrumb a { color: rgba(255,255,255,0.5); transition: color 0.2s; }
+        .breadcrumb a:hover { color: rgba(255,255,255,0.9); }
+        .breadcrumb span { color: rgba(255,255,255,0.3); }
+        .breadcrumb .current { color: rgba(255,255,255,0.85); font-weight: 500; }
+
+        /* ── Section labels ── */
+        .section-label {
+            display: inline-flex; align-items: center; gap: 10px;
+            font-size: 0.75rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.15em;
+            color: var(--royal); margin-bottom: 14px;
+        }
+        .section-label::before { content: ''; width: 22px; height: 2px; background: var(--royal); }
+
+        /* ── Cards ── */
+        .card {
+            background: #fff; border: 1px solid var(--border);
+            border-radius: 14px; padding: 28px;
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+            position: relative; overflow: hidden;
+        }
+        .card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--royal), var(--accent));
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .card:hover { border-color: #cbd5e1; transform: translateY(-5px); box-shadow: 0 20px 44px rgba(15,23,42,0.08); }
+        .card:hover::before { opacity: 1; }
+
+        .icon-box {
+            width: 50px; height: 50px; border-radius: 12px;
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--royal); margin-bottom: 18px; transition: all 0.3s;
+        }
+        .card:hover .icon-box { background: linear-gradient(135deg, var(--royal), var(--royal-light)); color: #fff; }
+
+        /* ── Info rows ── */
+        .info-row {
+            display: flex; align-items: flex-start; gap: 16px;
+            padding: 20px; border-radius: 12px;
+            background: var(--bg-warm); border: 1px solid var(--border);
+        }
+        .info-icon {
+            width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--royal);
+        }
+
+        /* ── Tags ── */
+        .tag {
+            display: inline-block; padding: 4px 12px;
+            border-radius: 100px; font-size: 0.75rem; font-weight: 600;
+            background: #eff6ff; color: var(--royal);
+            border: 1px solid #dbeafe;
+        }
+
+        /* ── Form ── */
+        .form-input {
+            background: #fff; border: 1px solid var(--border);
+            width: 100%; padding: 12px 16px; border-radius: 10px;
+            font-size: 0.9rem; transition: all 0.25s; color: var(--text);
+        }
+        .form-input:focus {
+            outline: none; border-color: var(--royal);
+            box-shadow: 0 0 0 4px rgba(30,58,138,0.06);
+        }
+        .form-input::placeholder { color: #94a3b8; }
+
+        /* ── Footer ── */
+        footer { background: var(--navy); color: rgba(255,255,255,0.7); }
+        .footer-heading {
+            font-size: 0.72rem; font-weight: 700;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            color: #fff; margin-bottom: 18px;
+        }
+        .footer-link {
+            display: block; color: #8896a8; font-size: 0.875rem;
+            margin-bottom: 9px; transition: color 0.2s; text-decoration: none;
+        }
+        .footer-link:hover { color: #fff; }
+
+        /* ── Reveal ── */
+        .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.75s ease, transform 0.75s ease; }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-warm); }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    </style>
+    {% block extra_styles %}{% endblock %}
+    <base target="_blank">
+</head>
+<body>
+
+    <!-- ── Navigation ── -->
+    {% include 'partials/header.html' %}
+
+    <!-- ── Page Hero ── -->
+    <div class="page-hero">
+        <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="breadcrumb mb-6">
+                <a href="/" target="_self">Home</a>
+                {% block breadcrumb %}{% endblock %}
+            </div>
+            <div class="section-label" style="color:rgba(255,255,255,0.5)">
+                {% block section_label %}Ramay Electromedix{% endblock %}
+            </div>
+            <h1 class="font-display text-3xl md:text-5xl font-bold text-white mt-2 mb-4 leading-tight">
+                {% block page_title %}Page{% endblock %}
+            </h1>
+            <p class="text-blue-200/70 text-base md:text-lg max-w-2xl">
+                {% block page_subtitle %}{% endblock %}
+            </p>
+        </div>
+    </div>
+
+    <!-- ── Page Content ── -->
+    {% block content %}{% endblock %}
+
+    <!-- ── Footer ── -->
+    {% include 'partials/footer.html' %}
+
+    <script>
+        lucide.createIcons();
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => navbar.classList.toggle('scrolled', scrollY > 50));
+        {% block extra_js %}{% endblock %}
+    </script>
+</body>
+</html>
