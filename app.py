@@ -112,7 +112,85 @@ def load_logged_in_user():
             "role": session.get("role")
         }
 
+# ── Company pages ──────────────────────────────────────────────
+@app.route("/about")
+def about():
+    return render_template("company/about.html")
 
+@app.route("/partners")
+def partners():
+    return render_template("company/partners.html")
+
+@app.route("/careers")
+def careers():
+    return render_template("company/careers.html")
+
+@app.route("/network")
+def network():
+    return render_template("company/network.html")
+
+@app.route("/news")
+def news():
+    return render_template("company/news.html")
+
+@app.route("/conferences")
+def conferences():
+    return render_template("company/conferences.html")
+
+# ── Legal pages ────────────────────────────────────────────────
+@app.route("/privacy")
+def privacy():
+    return render_template("legal/privacy.html")
+
+@app.route("/terms")
+def terms():
+    return render_template("legal/terms.html")
+
+@app.route("/quality")
+def quality():
+    return render_template("legal/quality.html")
+
+@app.route("/drap")
+def drap():
+    return render_template("legal/drap.html")
+
+# ── Support pages ──────────────────────────────────────────────
+@app.route("/contact")
+def contact():
+    return render_template("support/contact.html")
+
+@app.route("/docs")
+def docs():
+    return render_template("support/docs.html")
+
+@app.route("/technical")
+def technical():
+    return render_template("support/technical.html")
+
+@app.route("/amc")
+def amc():
+    return render_template("support/amc.html")
+
+# ── Product pages ──────────────────────────────────────────────
+@app.route("/products/surgical")
+def surgical():
+    return render_template("products/surgical.html")
+
+@app.route("/products/machines")
+def machines():
+    return render_template("products/machines.html")
+
+@app.route("/products/consumables")
+def consumables():
+    return render_template("products/consumables.html")
+
+@app.route("/products/preowned")
+def preowned():
+    return render_template("products/preowned.html")
+
+@app.route("/products/lol")
+def lol():
+    return render_template("products/lol.html")
 @app.route("/invoice", methods=["GET", "POST"])
 def invoice():
     if request.method == "POST":
