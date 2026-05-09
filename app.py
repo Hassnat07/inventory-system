@@ -6,6 +6,8 @@ from auth_routes import auth_bp
 from inventory_routes import inventory_bp
 import logging
 from psycopg2.pool import ThreadedConnectionPool  # Added connection pooling
+from catalog_routes import catalog_bp 
+from conference_routes import conference_bp 
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key'
@@ -19,6 +21,8 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000  # 1 year for static files
 
 app.register_blueprint(auth_bp, url_prefix="/portal")
 app.register_blueprint(inventory_bp, url_prefix="/portal/inventory")
+app.register_blueprint(catalog_bp)      
+app.register_blueprint(conference_bp)       
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("werkzeug").setLevel(logging.INFO)
