@@ -30,7 +30,6 @@
             min-height: 100vh;
         }
 
-        /* SIDEBAR */
         .sidebar {
             width: var(--sidebar-width);
             background: var(--primary);
@@ -84,7 +83,6 @@
             margin-top: auto;
         }
 
-        /* MAIN CONTENT */
         .main-content {
             margin-left: var(--sidebar-width);
             width: calc(100% - var(--sidebar-width));
@@ -113,7 +111,6 @@
             white-space: nowrap;
         }
 
-        /* STATS GRID */
         .stats {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -144,7 +141,6 @@
             color: var(--primary);
         }
 
-        /* MODULE GRID */
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -205,7 +201,6 @@
             font-weight: 800;
         }
 
-        /* MOBILE MENU TOGGLE */
         .menu-toggle {
             display: none;
             background: var(--primary);
@@ -217,9 +212,6 @@
             font-size: 20px;
         }
 
-        /* RESPONSIVE BREAKPOINTS */
-
-        /* Tablet View */
         @media (max-width: 1024px) {
             .sidebar {
                 width: var(--sidebar-collapsed);
@@ -241,52 +233,24 @@
             }
         }
 
-        /* Mobile View */
         @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-            }
-            .menu-toggle {
-                display: block;
-            }
+            body { flex-direction: column; }
+            .menu-toggle { display: block; }
             .sidebar {
                 width: 100%;
                 height: auto;
                 position: relative;
                 padding: 15px;
-                display: none; /* Controlled by JS or toggle */
+                display: none;
             }
-            .sidebar.active {
-                display: flex;
-            }
-            .sidebar-brand {
-                display: block;
-                border: none;
-                margin-bottom: 15px;
-            }
-            .nav-item span {
-                display: inline;
-            }
-            .nav-item {
-                justify-content: flex-start;
-                padding: 12px 15px;
-            }
-            .main-content {
-                margin-left: 0;
-                width: 100%;
-                padding: 20px;
-            }
-            header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .profile-pill {
-                align-self: flex-end;
-            }
-            .stats {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
+            .sidebar.active { display: flex; }
+            .sidebar-brand { display: block; border: none; margin-bottom: 15px; }
+            .nav-item span { display: inline; }
+            .nav-item { justify-content: flex-start; padding: 12px 15px; }
+            .main-content { margin-left: 0; width: 100%; padding: 20px; }
+            header { flex-direction: column; align-items: flex-start; }
+            .profile-pill { align-self: flex-end; }
+            .stats { grid-template-columns: 1fr; gap: 15px; }
         }
     </style>
 </head>
@@ -302,7 +266,7 @@
     <div class="sidebar-brand">RAMAY.</div>
 
     <nav class="nav-menu">
-       <a href="/portal/admin" class="nav-item active">
+        <a href="/portal/admin" class="nav-item active">
             <i>🏠</i> <span>Dashboard</span>
         </a>
         <a href="/portal/dashboard" class="nav-item">
@@ -310,6 +274,12 @@
         </a>
         <a href="/portal/inventory" class="nav-item">
             <i>📦</i> <span>Inventory</span>
+        </a>
+        <a href="/admin/catalog" class="nav-item">
+            <i>📋</i> <span>Catalog</span>
+        </a>
+        <a href="/admin/conferences" class="nav-item">
+            <i>🎤</i> <span>Conferences</span>
         </a>
         <a href="#" class="nav-item">
             <i>🩺</i> <span>Doctors</span>
@@ -331,7 +301,6 @@
             <h2>Admin Dashboard</h2>
             <p>Hello, <strong>{{ g.user.username }}</strong>. Today's Summary.</p>
         </div>
-
         <div class="profile-pill">
             👤 {{ g.user.username }}
         </div>
@@ -342,17 +311,14 @@
             <small>Today's Deliveries</small>
             <div class="value">24</div>
         </div>
-
         <div class="stat-card">
             <small>Active Team</small>
             <div class="value">08</div>
         </div>
-
         <div class="stat-card">
             <small>Total Doctors</small>
             <div class="value">148</div>
         </div>
-
         <div class="stat-card">
             <small>Monthly Goal</small>
             <div class="value">312</div>
@@ -372,6 +338,20 @@
             <div class="icon-box">📦</div>
             <h3>Inventory Control</h3>
             <p>Track lens stock, batch numbers, and worker-issued quantities.</p>
+            <div class="card-link">Open Module →</div>
+        </a>
+
+        <a class="card" href="/admin/catalog">
+            <div class="icon-box">📋</div>
+            <h3>Catalog Manager</h3>
+            <p>Add, edit, and organise products in the IOLs and Eye Machines catalogs shown on the website.</p>
+            <div class="card-link">Open Module →</div>
+        </a>
+
+        <a class="card" href="/admin/conferences">
+            <div class="icon-box">🎤</div>
+            <h3>Conference Images</h3>
+            <p>Upload and manage photos for the Stallin Conference 2024, 2025, and 2026 shown on the website.</p>
             <div class="card-link">Open Module →</div>
         </a>
 
@@ -405,7 +385,6 @@
         }
     }
 
-    // Hide mobile menu toggle if not on mobile
     window.addEventListener('resize', function() {
         if (window.innerWidth > 768) {
             document.getElementById('sidebar').style.display = 'flex';
