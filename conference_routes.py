@@ -1,11 +1,11 @@
 import os
-import uuid
+import cloudinary
+import cloudinary.uploader
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
 from database import get_db
 
 conference_bp = Blueprint("conferences", __name__)
 
-UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "static", "uploads", "conferences")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "gif"}
 
 CONFERENCE_YEARS = [
@@ -21,18 +21,15 @@ def _admin_required():
 
 
 def _save_file(file):
-    ext = file.filename.rsplit(".", 1)[1].lower()
-    filename = f"{uuid.uuid4().hex}.{ext}"
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    file.save(os.path.join(UPLOAD_FOLDER, filename))
-    return filename
+    result = cloudinary.uploader.upload(file)
+    return result["secure_url"]
 
 
 def _allowed(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-# ── Public: fetch images for a given year (used by conferences page) ──
+# ── Public: fetch images for a given year ──
 def get_images_for_year(year):
     con = get_db()
     cur = con.cursor()
@@ -129,9 +126,11 @@ def delete_conference_image(image_id):
     row = cur.fetchone()
 
     if row:
-        filepath = os.path.join(UPLOAD_FOLDER, row[0])
-        if os.path.exists(filepath):
-            os.remove(filepath)
+        try:
+            public_id = row[0].split("/")[-1].split(".")[0]
+            cloudinary.uploader.destroy(public_id)
+        except Exception:
+            pass
         cur.execute("DELETE FROM conference_images WHERE id = %s", (image_id,))
         con.commit()
         flash("Image deleted.", "success")
