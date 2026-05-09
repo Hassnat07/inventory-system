@@ -1,12 +1,11 @@
 import os
-import uuid
+import cloudinary
+import cloudinary.uploader
 from flask import Blueprint, render_template, request, redirect, url_for, g, flash
-from werkzeug.utils import secure_filename
 from database import get_db
 
 catalog_bp = Blueprint("catalog", __name__)
 
-UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "static", "uploads", "catalog")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "gif"}
 
 CATEGORIES = [
@@ -25,11 +24,8 @@ def _admin_required():
 
 
 def _save_file(file):
-    ext = file.filename.rsplit(".", 1)[1].lower()
-    filename = f"{uuid.uuid4().hex}.{ext}"
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    file.save(os.path.join(UPLOAD_FOLDER, filename))
-    return filename
+    result = cloudinary.uploader.upload(file)
+    return result["secure_url"]
 
 
 # ── Public catalog list ─────────────────────────────────────────────────────
@@ -86,7 +82,6 @@ def catalog_detail(item_id):
         "description": row[3], "model_no": row[4], "image_filename": row[5],
     }
 
-    # All extra images for this item
     cur.execute("""
         SELECT image_filename FROM catalog_item_images
         WHERE item_id = %s ORDER BY sort_order, id
@@ -95,7 +90,6 @@ def catalog_detail(item_id):
     cur.close()
     con.close()
 
-    # Full image list: cover first, then extras (skip duplicates)
     all_images = [item["image_filename"]]
     for fn in extra_rows:
         if fn not in all_images:
@@ -118,7 +112,6 @@ def catalog_admin():
     """)
     items_raw = cur.fetchall()
 
-    # Count extra images per item
     cur.execute("SELECT item_id, COUNT(*) FROM catalog_item_images GROUP BY item_id")
     img_counts = {r[0]: r[1] for r in cur.fetchall()}
 
@@ -138,7 +131,7 @@ def catalog_admin():
     return render_template("admin/catalog_admin.html", items=items, categories=CATEGORIES)
 
 
-# ── Admin: add new product (supports multiple images) ───────────────────────
+# ── Admin: add new product ───────────────────────────────────────────────────
 @catalog_bp.route("/admin/catalog/add", methods=["POST"])
 def catalog_add():
     if not _admin_required():
@@ -161,7 +154,6 @@ def catalog_add():
             flash(f'"{f.filename}" is not an allowed image type.', "error")
             return redirect(url_for("catalog.catalog_admin"))
 
-    # Save cover (first file)
     cover_filename = _save_file(valid_files[0])
 
     con = get_db()
@@ -172,7 +164,6 @@ def catalog_add():
     """, (name, category, description or None, model_no or None, cover_filename))
     item_id = cur.fetchone()[0]
 
-    # Save all uploaded images into catalog_item_images
     for i, f in enumerate(valid_files):
         filename = cover_filename if i == 0 else _save_file(f)
         cur.execute("""
@@ -205,7 +196,6 @@ def catalog_add_images(item_id):
     con = get_db()
     cur = con.cursor()
 
-    # Get current max sort_order
     cur.execute("SELECT COALESCE(MAX(sort_order), -1) FROM catalog_item_images WHERE item_id = %s", (item_id,))
     next_order = cur.fetchone()[0] + 1
 
@@ -237,12 +227,11 @@ def catalog_delete_image(image_id):
     cur.execute("SELECT image_filename, item_id FROM catalog_item_images WHERE id = %s", (image_id,))
     row = cur.fetchone()
     if row:
-        img_path = os.path.join(UPLOAD_FOLDER, row[0])
-        if os.path.exists(img_path):
-            try:
-                os.remove(img_path)
-            except OSError:
-                pass
+        try:
+            public_id = row[0].split("/")[-1].split(".")[0]
+            cloudinary.uploader.destroy(public_id)
+        except Exception:
+            pass
         cur.execute("DELETE FROM catalog_item_images WHERE id = %s", (image_id,))
         con.commit()
     cur.close()
@@ -261,26 +250,22 @@ def catalog_delete(item_id):
     con = get_db()
     cur = con.cursor()
 
-    # Delete extra images files
     cur.execute("SELECT image_filename FROM catalog_item_images WHERE item_id = %s", (item_id,))
     for (fn,) in cur.fetchall():
-        img_path = os.path.join(UPLOAD_FOLDER, fn)
-        if os.path.exists(img_path):
-            try:
-                os.remove(img_path)
-            except OSError:
-                pass
+        try:
+            public_id = fn.split("/")[-1].split(".")[0]
+            cloudinary.uploader.destroy(public_id)
+        except Exception:
+            pass
 
-    # Delete cover image file
     cur.execute("SELECT image_filename FROM catalog_items WHERE id = %s", (item_id,))
     row = cur.fetchone()
     if row:
-        img_path = os.path.join(UPLOAD_FOLDER, row[0])
-        if os.path.exists(img_path) and row[0] not in []:
-            try:
-                os.remove(img_path)
-            except OSError:
-                pass
+        try:
+            public_id = row[0].split("/")[-1].split(".")[0]
+            cloudinary.uploader.destroy(public_id)
+        except Exception:
+            pass
         cur.execute("DELETE FROM catalog_items WHERE id = %s", (item_id,))
         con.commit()
 
