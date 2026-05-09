@@ -29,11 +29,12 @@ logging.getLogger("werkzeug").setLevel(logging.INFO)
 logging.info("Registered URL map:\n%s", app.url_map)
 
 # Initialize database tables
-from database import init_auth_tables
+from database import init_auth_tables, init_catalog_conference_tables
 from inventory_db import init_db
 
 init_auth_tables()
 init_db()
+init_catalog_conference_tables()
 
 @app.route("/home")
 @app.route("/")
