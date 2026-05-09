@@ -4,3 +4,4 @@ reportlab
 num2words
 psycopg2-binary
 cloudinary
+gevent
