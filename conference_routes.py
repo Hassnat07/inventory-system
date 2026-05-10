@@ -6,8 +6,6 @@ from database import get_db
 
 conference_bp = Blueprint("conferences", __name__)
 
-# ── Configure Cloudinary from environment variables ──
-import cloudinary
 cloudinary.config(True)  # Auto-reads CLOUDINARY_URL from environment
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "gif"}
@@ -32,16 +30,59 @@ def _save_file(file):
     try:
         result = cloudinary.uploader.upload(
             file,
-            folder="conferences",        # organizes in Cloudinary
+            folder="conferences",
             resource_type="image",
-            timeout=60                   # explicit timeout
+            timeout=60
         )
         return result["secure_url"]
     except Exception as e:
         raise RuntimeError(f"Cloudinary upload failed: {e}")
 
 
-# ── Upload images for a year ──
+def get_images_for_year(year):
+    con = get_db()
+    cur = con.cursor()
+    cur.execute(
+        "SELECT id, image_filename, caption FROM conference_images WHERE year = %s ORDER BY sort_order, id",
+        (year,)
+    )
+    rows = cur.fetchall()
+    cur.close()
+    return [{"id": r[0], "filename": r[1], "caption": r[2]} for r in rows]
+
+
+@conference_bp.route("/admin/conferences")
+def admin_conferences():
+    if not _admin_required():
+        return redirect(url_for("auth.login"))
+
+    con = get_db()
+    cur = con.cursor()
+    cur.execute("SELECT year, COUNT(*) FROM conference_images GROUP BY year")
+    counts = {row[0]: row[1] for row in cur.fetchall()}
+
+    images_by_year = {}
+    for conf in CONFERENCE_YEARS:
+        y = conf["year"]
+        cur.execute(
+            "SELECT id, image_filename, caption, sort_order FROM conference_images WHERE year = %s ORDER BY sort_order, id",
+            (y,)
+        )
+        images_by_year[y] = [
+            {"id": r[0], "filename": r[1], "caption": r[2], "sort_order": r[3]}
+            for r in cur.fetchall()
+        ]
+
+    cur.close()
+
+    return render_template(
+        "admin/conferences_admin.html",
+        conferences=CONFERENCE_YEARS,
+        images_by_year=images_by_year,
+        counts=counts,
+    )
+
+
 @conference_bp.route("/admin/conferences/<int:year>/add-images", methods=["POST"])
 def add_conference_images(year):
     if not _admin_required():
@@ -76,7 +117,6 @@ def add_conference_images(year):
 
     con.commit()
     cur.close()
-    # Don't call con.close() if get_db() returns a pooled connection
 
     if saved:
         flash(f"{saved} image{'s' if saved > 1 else ''} uploaded to {year}.", "success")
@@ -85,4 +125,28 @@ def add_conference_images(year):
     if not saved and not errors:
         flash("No valid images were uploaded.", "error")
 
+    return redirect(url_for("conferences.admin_conferences"))
+
+
+@conference_bp.route("/admin/conferences/image/<int:image_id>/delete", methods=["POST"])
+def delete_conference_image(image_id):
+    if not _admin_required():
+        return redirect(url_for("auth.login"))
+
+    con = get_db()
+    cur = con.cursor()
+    cur.execute("SELECT image_filename FROM conference_images WHERE id = %s", (image_id,))
+    row = cur.fetchone()
+
+    if row:
+        try:
+            public_id = "conferences/" + row[0].split("/")[-1].split(".")[0]
+            cloudinary.uploader.destroy(public_id)
+        except Exception:
+            pass
+        cur.execute("DELETE FROM conference_images WHERE id = %s", (image_id,))
+        con.commit()
+        flash("Image deleted.", "success")
+
+    cur.close()
     return redirect(url_for("conferences.admin_conferences"))
