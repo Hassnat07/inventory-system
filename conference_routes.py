@@ -7,12 +7,8 @@ from database import get_db
 conference_bp = Blueprint("conferences", __name__)
 
 # ── Configure Cloudinary from environment variables ──
-cloudinary.config(
-    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
-    api_key=os.environ.get("CLOUDINARY_API_KEY"),
-    api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
-    secure=True
-)
+import cloudinary
+cloudinary.config(True)  # Auto-reads CLOUDINARY_URL from environment
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "gif"}
 
