@@ -134,14 +134,54 @@ def network():
 def news():
     return render_template("company/news.html")
 
+CONFERENCE_LIST = [
+    {
+        "year": 2024,
+        "title": "Stallin Conference 2024",
+        "location": "Lahore, Punjab",
+        "description": "Ramay Electromedix participated as a major exhibitor at the 2024 edition of the Stallin Conference in Lahore, presenting our full portfolio of premium IOLs, Japanese diagnostic machines, and ophthalmic surgical instruments to attendees from across the country.",
+    },
+    {
+        "year": 2025,
+        "title": "Stallin Conference 2025",
+        "location": "Lahore, Punjab",
+        "description": "Building on the momentum of the previous year, our team returned to Lahore for the 2025 Stallin Conference. We showcased expanded product lines and strengthened partnerships with eye hospitals and clinics across Pakistan.",
+    },
+    {
+        "year": 2026,
+        "title": "Stallin Conference 2026",
+        "location": "Peshawar, KPK",
+        "description": "The 2026 edition of the Stallin Conference moves to Peshawar, bringing the event to Khyber Pakhtunkhwa for the first time. Ramay Electromedix will be participating as a major exhibitor, further extending our reach into KPK's growing ophthalmic sector.",
+    },
+]
+
 @app.route("/conferences")
 def conferences():
     from conference_routes import get_images_for_year
+    from database import get_db
+    con = get_db()
+    cur = con.cursor()
+    cur.execute("SELECT year, COUNT(*) FROM conference_images GROUP BY year")
+    photo_counts = {row[0]: row[1] for row in cur.fetchall()}
+    cur.close()
+    con.close()
     return render_template(
         "company/conferences.html",
-        images_2024=get_images_for_year(2024),
-        images_2025=get_images_for_year(2025),
-        images_2026=get_images_for_year(2026),
+        conferences=CONFERENCE_LIST,
+        photo_counts=photo_counts,
+    )
+
+@app.route("/conferences/<int:year>")
+def conference_gallery(year):
+    conf = next((c for c in CONFERENCE_LIST if c["year"] == year), None)
+    if not conf:
+        return redirect(url_for("conferences"))
+    from conference_routes import get_images_for_year
+    images = get_images_for_year(year)
+    return render_template(
+        "company/conference_gallery.html",
+        conf=conf,
+        images=images,
     )
 
 # ── Legal pages ────────────────────────────────────────────────
