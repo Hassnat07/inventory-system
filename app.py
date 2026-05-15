@@ -136,7 +136,13 @@ def news():
 
 @app.route("/conferences")
 def conferences():
-    return render_template("company/conferences.html")
+    from conference_routes import get_images_for_year
+    return render_template(
+        "company/conferences.html",
+        images_2024=get_images_for_year(2024),
+        images_2025=get_images_for_year(2025),
+        images_2026=get_images_for_year(2026),
+    )
 
 # ── Legal pages ────────────────────────────────────────────────
 @app.route("/privacy")
