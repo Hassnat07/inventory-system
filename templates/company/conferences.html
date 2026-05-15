@@ -129,7 +129,7 @@
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-5">
                         {% for img in images_2024 %}
                         <div class="conf-thumb" onclick="openGallery('g2024', {{ loop.index0 }})">
-                            <img src="{{ url_for('static', filename='uploads/conferences/' ~ img.filename) }}" alt="{{ img.caption or 'Stallin Conference 2024' }}" loading="lazy">
+                            <img src="{{ img.url }}" alt="{{ img.caption or 'Stallin Conference 2024' }}" loading="lazy">
                             <div class="overlay">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0zm-2.5 3.5L17 17"/><circle cx="11" cy="11" r="6"/><path stroke-linecap="round" d="M11 8v6M8 11h6"/></svg>
                             </div>
@@ -172,7 +172,7 @@
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-5">
                         {% for img in images_2025 %}
                         <div class="conf-thumb" onclick="openGallery('g2025', {{ loop.index0 }})">
-                            <img src="{{ url_for('static', filename='uploads/conferences/' ~ img.filename) }}" alt="{{ img.caption or 'Stallin Conference 2025' }}" loading="lazy">
+                            <img src="{{ img.url }}" alt="{{ img.caption or 'Stallin Conference 2025' }}" loading="lazy">
                             <div class="overlay">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5-5m0 0A7 7 0 1 0 5 5a7 7 0 0 0 11 11zm-4-7h-6m3-3v6"/></svg>
                             </div>
@@ -215,7 +215,7 @@
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-5">
                         {% for img in images_2026 %}
                         <div class="conf-thumb" onclick="openGallery('g2026', {{ loop.index0 }})">
-                            <img src="{{ url_for('static', filename='uploads/conferences/' ~ img.filename) }}" alt="{{ img.caption or 'Stallin Conference 2026' }}" loading="lazy">
+                            <img src="{{ img.url }}" alt="{{ img.caption or 'Stallin Conference 2026' }}" loading="lazy">
                             <div class="overlay">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5-5m0 0A7 7 0 1 0 5 5a7 7 0 0 0 11 11zm-4-7h-6m3-3v6"/></svg>
                             </div>
@@ -264,9 +264,9 @@
 
 <script>
 var galleries = {
-    g2024: {{ images_2024 | map(attribute='filename') | list | tojson }},
-    g2025: {{ images_2025 | map(attribute='filename') | list | tojson }},
-    g2026: {{ images_2026 | map(attribute='filename') | list | tojson }}
+    g2024: {{ images_2024 | map(attribute='url') | list | tojson }},
+    g2025: {{ images_2025 | map(attribute='url') | list | tojson }},
+    g2026: {{ images_2026 | map(attribute='url') | list | tojson }}
 };
 var captions = {
     g2024: {{ images_2024 | map(attribute='caption') | list | tojson }},
@@ -296,7 +296,7 @@ function buildStrip() {
     var imgs = galleries[currentGallery];
     imgs.forEach(function(fn, i) {
         var img = document.createElement('img');
-        img.src = '/static/uploads/conferences/' + fn;
+        img.src = fn.startsWith('http') ? fn : '/static/uploads/conferences/' + fn;
         img.onclick = function() { currentIdx = i; updateLightbox(); };
         strip.appendChild(img);
     });
@@ -308,7 +308,7 @@ function updateLightbox() {
     var el = document.getElementById('lb-img');
     el.style.opacity = '0';
     setTimeout(function() {
-        el.src = '/static/uploads/conferences/' + imgs[currentIdx];
+        el.src = imgs[currentIdx].startsWith('http') ? imgs[currentIdx] : '/static/uploads/conferences/' + imgs[currentIdx];
         el.style.opacity = '1';
     }, 100);
     document.getElementById('lb-counter').textContent = (currentIdx + 1) + ' / ' + imgs.length;
