@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-
 {% block title %}Conferences{% endblock %}
 {% block meta_desc %}Ramay Electromedix at ophthalmic conferences across Pakistan — Stallin Conference 2024 & 2025 in Lahore, 2026 in Peshawar.{% endblock %}
 
@@ -9,337 +8,80 @@
 {% block page_subtitle %}Ramay Electromedix actively participates in Pakistan's leading ophthalmic conferences — connecting with surgeons, hospitals, and the broader eye-care community.{% endblock %}
 
 {% block content %}
-<style>
-    .conf-thumb {
-        position: relative; overflow: hidden;
-        border-radius: 12px; border: 1px solid #e2e8f0;
-        cursor: pointer; background: #f8fafc;
-    }
-    .conf-thumb img {
-        width: 100%; height: 220px; object-fit: cover;
-        display: block; transition: transform 0.3s ease;
-    }
-    .conf-thumb:hover img { transform: scale(1.04); }
-    .conf-thumb .overlay {
-        position: absolute; inset: 0;
-        background: rgba(10,22,40,0); display: flex;
-        align-items: center; justify-content: center;
-        transition: background 0.25s;
-    }
-    .conf-thumb:hover .overlay { background: rgba(10,22,40,0.35); }
-    .conf-thumb .overlay svg {
-        color: #fff; opacity: 0;
-        transition: opacity 0.25s; width: 36px; height: 36px;
-        filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
-    }
-    .conf-thumb:hover .overlay svg { opacity: 1; }
-
-    /* Lightbox */
-    #lightbox {
-        display: none; position: fixed; inset: 0; z-index: 9999;
-        background: rgba(5,10,24,0.95); backdrop-filter: blur(10px);
-        flex-direction: column; align-items: center; justify-content: center;
-    }
-    #lightbox.open { display: flex; }
-    #lb-img {
-        max-width: 92vw; max-height: 78vh;
-        border-radius: 10px; object-fit: contain;
-        box-shadow: 0 40px 100px rgba(0,0,0,0.6);
-        transition: opacity 0.2s;
-    }
-    .lb-btn {
-        position: absolute; top: 50%; transform: translateY(-50%);
-        background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.15);
-        color: #fff; width: 52px; height: 52px; border-radius: 50%;
-        font-size: 1.5rem; cursor: pointer; display: flex;
-        align-items: center; justify-content: center;
-        transition: background 0.2s; z-index: 2;
-    }
-    .lb-btn:hover { background: rgba(255,255,255,0.25); }
-    #lb-prev { left: 16px; }
-    #lb-next { right: 16px; }
-    #lb-close {
-        position: absolute; top: 16px; right: 20px;
-        background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
-        color: #fff; width: 40px; height: 40px; border-radius: 50%;
-        font-size: 1.2rem; cursor: pointer; display: flex;
-        align-items: center; justify-content: center;
-        transition: background 0.2s;
-    }
-    #lb-close:hover { background: rgba(220,38,38,0.6); }
-    #lb-footer {
-        margin-top: 16px; display: flex; flex-direction: column;
-        align-items: center; gap: 6px;
-    }
-    #lb-counter { color: rgba(255,255,255,0.5); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em; }
-    #lb-caption { color: rgba(255,255,255,0.75); font-size: 0.88rem; text-align: center; max-width: 500px; }
-    #lb-dots { display: flex; gap: 6px; margin-top: 4px; }
-    .lb-dot {
-        width: 7px; height: 7px; border-radius: 50%;
-        background: rgba(255,255,255,0.25); cursor: pointer; transition: background 0.2s;
-    }
-    .lb-dot.active { background: #3b82f6; }
-
-    /* Thumbnail strip in lightbox */
-    #lb-strip {
-        display: flex; gap: 8px; margin-top: 12px;
-        max-width: 92vw; overflow-x: auto; padding-bottom: 4px;
-    }
-    #lb-strip img {
-        width: 60px; height: 44px; object-fit: cover;
-        border-radius: 6px; cursor: pointer; opacity: 0.5;
-        border: 2px solid transparent; transition: all 0.2s; flex-shrink: 0;
-    }
-    #lb-strip img.active { opacity: 1; border-color: #3b82f6; }
-</style>
-
 <section class="py-20 bg-white">
     <div class="max-w-7xl mx-auto px-6 lg:px-8">
 
-        <!-- Intro -->
         <div class="max-w-3xl mb-16 reveal">
             <div class="section-label">Our Presence</div>
             <h2 class="font-display text-3xl md:text-4xl font-bold mb-5 text-[#0f172a]">Stallin Conference</h2>
             <p class="text-[#475569] leading-relaxed">The Stallin Conference is one of Pakistan's most prominent ophthalmic gatherings, bringing together leading eye surgeons, clinical specialists, and medical suppliers under one roof. Ramay Electromedix has been a consistent major participant, showcasing the latest IOLs, diagnostic machines, and surgical instruments to the country's ophthalmic community.</p>
         </div>
 
-        <!-- Conference cards -->
-        <div class="space-y-12">
+        <div class="space-y-8">
+            {% for conf in conferences %}
+            {% set yr = conf.year %}
+            {% set count = photo_counts.get(yr, 0) %}
+            {% set is_upcoming = yr >= 2026 %}
 
-            <!-- 2024 -->
-            <div id="conf-2024" class="card relative overflow-hidden reveal">
-                <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[#3b82f6] to-[#1e3a8a] rounded-l-2xl"></div>
-                <div class="pl-4">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="icon-box"><i data-lucide="calendar" class="w-5 h-5"></i></div>
-                            <div>
-                                <h3 class="font-display font-bold text-xl text-[#0f172a]">Stallin Conference 2024</h3>
-                                <div class="flex items-center gap-2 mt-0.5">
-                                    <i data-lucide="map-pin" class="w-4 h-4 text-[#3b82f6]"></i>
-                                    <span class="text-[#475569] text-sm font-medium">Lahore, Punjab</span>
+            <div class="card relative overflow-hidden reveal">
+                <div class="absolute top-0 left-0 w-1 h-full rounded-l-2xl"
+                     style="background: linear-gradient(to bottom, {% if is_upcoming %}#0ea5e9, #3b82f6{% else %}#3b82f6, #1e3a8a{% endif %});"></div>
+
+                <div class="pl-4 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between md:justify-start gap-4 mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="icon-box" style="margin-bottom:0;width:44px;height:44px;">
+                                    <i data-lucide="{% if is_upcoming %}calendar-check{% else %}calendar{% endif %}" class="w-5 h-5 {% if is_upcoming %}text-sky-500{% endif %}"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-display font-bold text-xl text-[#0f172a]">{{ conf.title }}</h3>
+                                    <div class="flex items-center gap-2 mt-0.5">
+                                        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-[#3b82f6]"></i>
+                                        <span class="text-[#475569] text-sm font-medium">{{ conf.location }}</span>
+                                    </div>
                                 </div>
                             </div>
+                            <span class="tag" {% if is_upcoming %}style="background:#e0f2fe;color:#0369a1;"{% endif %}>
+                                {{ yr }}{% if is_upcoming %} — Upcoming{% endif %}
+                            </span>
                         </div>
-                        <span class="tag">2024</span>
-                    </div>
-                    <p class="text-[#475569] text-sm leading-relaxed mb-6">Ramay Electromedix participated as a major exhibitor at the 2024 edition of the Stallin Conference in Lahore, presenting our full portfolio of premium IOLs, Japanese diagnostic machines, and ophthalmic surgical instruments to attendees from across the country.</p>
 
-                    {% if images_2024 %}
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-5">
-                        {% for img in images_2024 %}
-                        <div class="conf-thumb" onclick="openGallery('g2024', {{ loop.index0 }})">
-                            <img src="{{ img.url }}" alt="{{ img.caption or 'Stallin Conference 2024' }}" loading="lazy">
-                            <div class="overlay">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0zm-2.5 3.5L17 17"/><circle cx="11" cy="11" r="6"/><path stroke-linecap="round" d="M11 8v6M8 11h6"/></svg>
-                            </div>
-                            {% if img.caption %}<div style="padding:6px 8px;font-size:0.72rem;color:#475569;font-weight:500;">{{ img.caption }}</div>{% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
-                    <div class="text-xs text-[#94a3b8] mb-4">{{ images_2024|length }} photo{{ 's' if images_2024|length != 1 }} — click any to view full size</div>
-                    {% endif %}
+                        <p class="text-[#475569] text-sm leading-relaxed mb-4">{{ conf.description }}</p>
 
-                    <div class="pt-4 border-t border-[#e2e8f0]">
-                        <div class="flex items-center gap-2 text-xs text-[#94a3b8] font-semibold uppercase tracking-wider">
-                            <i data-lucide="users" class="w-3.5 h-3.5"></i>
-                            Major Participant
+                        <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider {% if is_upcoming %}text-sky-500{% else %}text-[#94a3b8]{% endif %}">
+                            <i data-lucide="{% if is_upcoming %}clock{% else %}users{% endif %}" class="w-3.5 h-3.5"></i>
+                            {% if is_upcoming %}Coming Soon{% else %}Major Participant{% endif %}
                         </div>
+                    </div>
+
+                    <div class="flex-shrink-0 flex flex-col items-center gap-2">
+                        {% if count > 0 %}
+                        <a href="/conferences/{{ yr }}" target="_self" class="btn-primary"
+                           {% if is_upcoming %}style="background:linear-gradient(135deg,#0ea5e9,#3b82f6);"{% endif %}>
+                            <i data-lucide="images" class="w-4 h-4"></i>
+                            View Photos
+                        </a>
+                        <span class="text-xs text-[#94a3b8] font-medium">{{ count }} photo{{ 's' if count != 1 }}</span>
+                        {% else %}
+                        <div class="flex flex-col items-center gap-1.5 px-6 py-4 rounded-xl border border-dashed border-[#e2e8f0] bg-[#f8fafc]">
+                            <i data-lucide="image-off" class="w-6 h-6 text-[#cbd5e1]"></i>
+                            <span class="text-xs text-[#94a3b8] font-medium">{% if is_upcoming %}Photos coming soon{% else %}No photos yet{% endif %}</span>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
-
-            <!-- 2025 -->
-            <div id="conf-2025" class="card relative overflow-hidden reveal">
-                <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[#3b82f6] to-[#1e3a8a] rounded-l-2xl"></div>
-                <div class="pl-4">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="icon-box"><i data-lucide="calendar" class="w-5 h-5"></i></div>
-                            <div>
-                                <h3 class="font-display font-bold text-xl text-[#0f172a]">Stallin Conference 2025</h3>
-                                <div class="flex items-center gap-2 mt-0.5">
-                                    <i data-lucide="map-pin" class="w-4 h-4 text-[#3b82f6]"></i>
-                                    <span class="text-[#475569] text-sm font-medium">Lahore, Punjab</span>
-                                </div>
-                            </div>
-                        </div>
-                        <span class="tag">2025</span>
-                    </div>
-                    <p class="text-[#475569] text-sm leading-relaxed mb-6">Building on the momentum of the previous year, our team returned to Lahore for the 2025 Stallin Conference. We showcased expanded product lines and strengthened partnerships with eye hospitals and clinics across Pakistan.</p>
-
-                    {% if images_2025 %}
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-5">
-                        {% for img in images_2025 %}
-                        <div class="conf-thumb" onclick="openGallery('g2025', {{ loop.index0 }})">
-                            <img src="{{ img.url }}" alt="{{ img.caption or 'Stallin Conference 2025' }}" loading="lazy">
-                            <div class="overlay">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5-5m0 0A7 7 0 1 0 5 5a7 7 0 0 0 11 11zm-4-7h-6m3-3v6"/></svg>
-                            </div>
-                            {% if img.caption %}<div style="padding:6px 8px;font-size:0.72rem;color:#475569;font-weight:500;">{{ img.caption }}</div>{% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
-                    <div class="text-xs text-[#94a3b8] mb-4">{{ images_2025|length }} photo{{ 's' if images_2025|length != 1 }} — click any to view full size</div>
-                    {% endif %}
-
-                    <div class="pt-4 border-t border-[#e2e8f0]">
-                        <div class="flex items-center gap-2 text-xs text-[#94a3b8] font-semibold uppercase tracking-wider">
-                            <i data-lucide="users" class="w-3.5 h-3.5"></i>
-                            Major Participant
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2026 -->
-            <div id="conf-2026" class="card relative overflow-hidden reveal">
-                <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[#0ea5e9] to-[#3b82f6] rounded-l-2xl"></div>
-                <div class="pl-4">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="icon-box bg-sky-50"><i data-lucide="calendar-check" class="w-5 h-5 text-sky-600"></i></div>
-                            <div>
-                                <h3 class="font-display font-bold text-xl text-[#0f172a]">Stallin Conference 2026</h3>
-                                <div class="flex items-center gap-2 mt-0.5">
-                                    <i data-lucide="map-pin" class="w-4 h-4 text-sky-500"></i>
-                                    <span class="text-[#475569] text-sm font-medium">Peshawar, KPK</span>
-                                </div>
-                            </div>
-                        </div>
-                        <span class="tag" style="background:#e0f2fe;color:#0369a1;">2026 — Upcoming</span>
-                    </div>
-                    <p class="text-[#475569] text-sm leading-relaxed mb-6">The 2026 edition of the Stallin Conference moves to Peshawar, bringing the event to Khyber Pakhtunkhwa for the first time. Ramay Electromedix will be participating as a major exhibitor, further extending our reach into KPK's growing ophthalmic sector.</p>
-
-                    {% if images_2026 %}
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-5">
-                        {% for img in images_2026 %}
-                        <div class="conf-thumb" onclick="openGallery('g2026', {{ loop.index0 }})">
-                            <img src="{{ img.url }}" alt="{{ img.caption or 'Stallin Conference 2026' }}" loading="lazy">
-                            <div class="overlay">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5-5m0 0A7 7 0 1 0 5 5a7 7 0 0 0 11 11zm-4-7h-6m3-3v6"/></svg>
-                            </div>
-                            {% if img.caption %}<div style="padding:6px 8px;font-size:0.72rem;color:#475569;font-weight:500;">{{ img.caption }}</div>{% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
-                    <div class="text-xs text-[#94a3b8] mb-4">{{ images_2026|length }} photo{{ 's' if images_2026|length != 1 }} — click any to view full size</div>
-                    {% endif %}
-
-                    <div class="pt-4 border-t border-[#e2e8f0]">
-                        <div class="flex items-center gap-2 text-xs text-sky-500 font-semibold uppercase tracking-wider">
-                            <i data-lucide="clock" class="w-3.5 h-3.5"></i>
-                            Coming Soon
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+            {% endfor %}
         </div>
 
-        <!-- Bottom CTA strip -->
         <div class="mt-16 bg-gradient-to-r from-[#1e3a8a] to-[#3b82f6] rounded-2xl p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6 reveal">
             <div>
                 <h3 class="font-display font-bold text-xl text-white mb-1">Meet us at the next conference</h3>
                 <p class="text-blue-200 text-sm">Interested in our products or scheduling a demonstration? Reach out before the event.</p>
             </div>
-            <a href="/contact" target="_self" class="btn-primary bg-white text-[#1e3a8a] hover:bg-blue-50 whitespace-nowrap" style="color:#1e3a8a;">Contact Us</a>
+            <a href="/contact" target="_self" class="btn-primary whitespace-nowrap" style="background:#fff;color:#1e3a8a;">Contact Us</a>
         </div>
-
     </div>
 </section>
-
-<!-- ── Lightbox ── -->
-<div id="lightbox">
-    <button id="lb-close" onclick="closeLightbox()" title="Close">&times;</button>
-    <button class="lb-btn" id="lb-prev" onclick="lbPrev()">&#8249;</button>
-    <img id="lb-img" src="" alt="">
-    <button class="lb-btn" id="lb-next" onclick="lbNext()">&#8250;</button>
-    <div id="lb-footer">
-        <div id="lb-counter"></div>
-        <div id="lb-caption"></div>
-        <div id="lb-strip"></div>
-    </div>
-</div>
-
-<script>
-var galleries = {
-    g2024: {{ images_2024 | map(attribute='url') | list | tojson }},
-    g2025: {{ images_2025 | map(attribute='url') | list | tojson }},
-    g2026: {{ images_2026 | map(attribute='url') | list | tojson }}
-};
-var captions = {
-    g2024: {{ images_2024 | map(attribute='caption') | list | tojson }},
-    g2025: {{ images_2025 | map(attribute='caption') | list | tojson }},
-    g2026: {{ images_2026 | map(attribute='caption') | list | tojson }}
-};
-var currentGallery = null, currentIdx = 0;
-
-function openGallery(gkey, idx) {
-    currentGallery = gkey;
-    currentIdx = idx;
-    var lb = document.getElementById('lightbox');
-    lb.classList.add('open');
-    document.body.style.overflow = 'hidden';
-    buildStrip();
-    updateLightbox();
-}
-
-function closeLightbox() {
-    document.getElementById('lightbox').classList.remove('open');
-    document.body.style.overflow = '';
-}
-
-function buildStrip() {
-    var strip = document.getElementById('lb-strip');
-    strip.innerHTML = '';
-    var imgs = galleries[currentGallery];
-    imgs.forEach(function(fn, i) {
-        var img = document.createElement('img');
-        img.src = fn.startsWith('http') ? fn : '/static/uploads/conferences/' + fn;
-        img.onclick = function() { currentIdx = i; updateLightbox(); };
-        strip.appendChild(img);
-    });
-}
-
-function updateLightbox() {
-    var imgs = galleries[currentGallery];
-    var caps = captions[currentGallery];
-    var el = document.getElementById('lb-img');
-    el.style.opacity = '0';
-    setTimeout(function() {
-        el.src = imgs[currentIdx].startsWith('http') ? imgs[currentIdx] : '/static/uploads/conferences/' + imgs[currentIdx];
-        el.style.opacity = '1';
-    }, 100);
-    document.getElementById('lb-counter').textContent = (currentIdx + 1) + ' / ' + imgs.length;
-    document.getElementById('lb-caption').textContent = caps[currentIdx] || '';
-    // update strip active
-    var thumbs = document.getElementById('lb-strip').querySelectorAll('img');
-    thumbs.forEach(function(t, i) { t.classList.toggle('active', i === currentIdx); });
-    // hide/show arrows
-    document.getElementById('lb-prev').style.display = imgs.length < 2 ? 'none' : 'flex';
-    document.getElementById('lb-next').style.display = imgs.length < 2 ? 'none' : 'flex';
-}
-
-function lbPrev() {
-    var imgs = galleries[currentGallery];
-    currentIdx = (currentIdx - 1 + imgs.length) % imgs.length;
-    updateLightbox();
-}
-function lbNext() {
-    var imgs = galleries[currentGallery];
-    currentIdx = (currentIdx + 1) % imgs.length;
-    updateLightbox();
-}
-
-document.getElementById('lightbox').addEventListener('click', function(e) {
-    if (e.target === this) closeLightbox();
-});
-document.addEventListener('keydown', function(e) {
-    if (!document.getElementById('lightbox').classList.contains('open')) return;
-    if (e.key === 'ArrowLeft')  lbPrev();
-    if (e.key === 'ArrowRight') lbNext();
-    if (e.key === 'Escape')     closeLightbox();
-});
-</script>
 {% endblock %}
