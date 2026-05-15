@@ -2,294 +2,248 @@
 {% block title %}Catalogs | IOLs & Eye Machines{% endblock %}
 {% block meta_desc %}Browse Ramay Electromedix's product catalogs — premium intraocular lenses and Japanese ophthalmic machines.{% endblock %}
 
-{% block breadcrumb %}
-    <span>›</span><span class="current">Catalogs</span>
-{% endblock %}
+{% block breadcrumb %}<span>/</span><span class="current">Catalogs</span>{% endblock %}
 {% block section_label %}Product Catalogs{% endblock %}
-{% block page_title %}IOLs & Eye Machines Catalog{% endblock %}
-{% block page_subtitle %}Browse our certified intraocular lenses and Japanese ophthalmic equipment.{% endblock %}
+{% block page_title %}IOLs & Eye Machines{% endblock %}
+{% block page_subtitle %}Certified intraocular lenses and Japanese ophthalmic equipment — trusted by surgeons across Pakistan.{% endblock %}
 
 {% block extra_styles %}
 <style>
-    /* ── Page background ── */
-    .catalog-page { background: #f5f5f5; min-height: 60vh; }
+/* ── Filter bar ── */
+.filter-wrap {
+    padding: 32px 0 8px;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.filter-btn {
+    padding: 8px 20px; border-radius: 100px;
+    font-size: 0.8rem; font-weight: 600;
+    border: 1.5px solid #e2e8f0; color: #64748b;
+    background: #fff; cursor: pointer; transition: all 0.2s;
+    white-space: nowrap; line-height: 1;
+}
+.filter-btn:hover { border-color: #1e3a8a; color: #1e3a8a; background: #eff6ff; }
+.filter-btn.active {
+    background: linear-gradient(135deg,#3b82f6,#1e3a8a);
+    color: #fff; border-color: transparent;
+    box-shadow: 0 4px 14px rgba(30,58,138,0.28);
+}
 
-    /* ── Filter bar ── */
-    .filter-bar {
-        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-        padding: 28px 0 0;
-    }
-    .filter-btn {
-        padding: 9px 22px; border-radius: 100px;
-        font-size: 0.82rem; font-weight: 600;
-        border: 1.5px solid #ddd; color: #555;
-        background: #fff; cursor: pointer; transition: all 0.2s;
-        white-space: nowrap;
-    }
-    .filter-btn:hover { border-color: #1e3a8a; color: #1e3a8a; }
-    .filter-btn.active {
-        background: #1e3a8a; color: #fff; border-color: #1e3a8a;
-        box-shadow: 0 4px 12px rgba(30,58,138,0.25);
-    }
+/* ── Category header ── */
+.cat-header {
+    display: flex; align-items: center; gap: 12px;
+    margin: 36px 0 20px; padding-bottom: 14px;
+    border-bottom: 2px solid #f1f5f9;
+}
+.cat-header h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.1rem; font-weight: 700; color: #0f172a;
+}
+.cat-header .cat-count {
+    font-size: 0.75rem; color: #94a3b8; font-weight: 600;
+    background: #f8fafc; border: 1px solid #e2e8f0;
+    padding: 3px 10px; border-radius: 100px;
+}
 
-    /* ── Category heading ── */
-    .cat-heading {
-        display: flex; align-items: center; gap: 12px;
-        margin: 40px 0 24px;
-        padding-bottom: 14px;
-        border-bottom: 2px solid #e2e8f0;
-    }
-    .cat-heading h2 {
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 1.25rem; font-weight: 700; color: #0f172a;
-    }
-    .cat-heading .count {
-        font-size: 0.8rem; color: #94a3b8; font-weight: 500;
-        background: #f1f5f9; padding: 3px 10px; border-radius: 100px;
-    }
+/* ── Product grid ── */
+.prod-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+@media (max-width: 1100px) { .prod-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 720px)  { .prod-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
+@media (max-width: 400px)  { .prod-grid { grid-template-columns: 1fr; } }
 
-    /* ── Grid ── */
-    .catalog-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 48px;
-    }
-    @media (max-width: 700px) {
-        .catalog-page > div { padding-left: 8px !important; padding-right: 8px !important; }
-        .catalog-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
-        .pcard-img-wrap {
-            min-height: 0 !important;
-            height: 170px !important;
-            padding: 14px 10px !important;
-        }
-        .pcard-img-wrap img {
-            max-height: 140px !important;
-            width: auto;
-        }
-        .pcard-body { padding: 12px 12px 16px !important; }
-        .pcard-name { font-size: 0.82rem !important; margin-bottom: 6px !important; }
-        .pcard-model { font-size: 0.72rem !important; margin-bottom: 8px !important; }
-        .pcard-desc { font-size: 0.76rem !important; margin-bottom: 12px !important; }
-        .pcard-btn { padding: 9px 18px !important; font-size: 0.72rem !important; }
-        .cat-heading h2 { font-size: 1rem !important; }
-    }
+/* ── Product card ── */
+.pcard {
+    background: #fff;
+    border: 1px solid #e8edf4;
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    text-decoration: none;
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+    position: relative;
+}
+.pcard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 48px rgba(15,23,42,0.1);
+    border-color: #c7d7f0;
+}
+.pcard::after {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #1e3a8a);
+    opacity: 0; transition: opacity 0.25s;
+}
+.pcard:hover::after { opacity: 1; }
 
-    /* ── Big product card (ref style) ── */
-    .pcard {
-        background: #fff;
-        border-radius: 8px;
-        overflow: hidden;
-        text-align: center;
-        transition: box-shadow 0.3s, transform 0.3s;
-        border: 1px solid #e8e8e8;
-    }
-    .pcard:hover {
-        box-shadow: 0 16px 48px rgba(0,0,0,0.13);
-        transform: translateY(-6px);
-    }
+/* Image area */
+.pcard-img {
+    aspect-ratio: 1 / 1;
+    display: flex; align-items: center; justify-content: center;
+    background: #f8fafc;
+    padding: 20px;
+    overflow: hidden; position: relative;
+}
+.pcard-img img {
+    max-width: 100%; max-height: 100%;
+    object-fit: contain;
+    transition: transform 0.35s ease;
+    filter: drop-shadow(0 4px 12px rgba(15,23,42,0.08));
+}
+.pcard:hover .pcard-img img { transform: scale(1.07); }
 
-    /* Image area — large & prominent */
-    .pcard-img-wrap {
-        background: #fff;
-        padding: 60px 56px 50px;
-        display: flex; align-items: center; justify-content: center;
-        min-height: 580px;
-        position: relative; overflow: hidden;
-    }
-    .pcard-img-wrap img {
-        max-width: 100%; max-height: 520px;
-        object-fit: contain;
-        transition: transform 0.4s ease;
-        display: block; margin: 0 auto;
-    }
-    .pcard:hover .pcard-img-wrap img { transform: scale(1.06); }
+/* View overlay on hover */
+.pcard-overlay {
+    position: absolute; inset: 0;
+    background: rgba(15,23,42,0);
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.25s;
+}
+.pcard:hover .pcard-overlay { background: rgba(15,23,42,0.04); }
+.pcard-overlay-btn {
+    background: #fff;
+    border: none; border-radius: 100px;
+    padding: 8px 18px;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: #1e3a8a;
+    box-shadow: 0 4px 16px rgba(15,23,42,0.18);
+    opacity: 0; transform: translateY(6px);
+    transition: opacity 0.22s, transform 0.22s;
+    display: flex; align-items: center; gap: 5px;
+    pointer-events: none;
+}
+.pcard:hover .pcard-overlay-btn { opacity: 1; transform: translateY(0); }
 
-    /* Quick-view overlay on hover */
-    .pcard-zoom {
-        position: absolute; inset: 0;
-        background: rgba(15,23,42,0);
-        display: flex; align-items: center; justify-content: center;
-        transition: background 0.3s;
-    }
-    .pcard:hover .pcard-zoom { background: rgba(15,23,42,0.06); }
-    .pcard-zoom-icon {
-        width: 44px; height: 44px; border-radius: 50%;
-        background: #fff; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-        display: flex; align-items: center; justify-content: center;
-        opacity: 0; transform: scale(0.7); transition: all 0.25s;
-    }
-    .pcard:hover .pcard-zoom-icon { opacity: 1; transform: scale(1); }
+/* Card body */
+.pcard-body {
+    padding: 14px 16px 18px;
+    flex: 1; display: flex; flex-direction: column;
+    border-top: 1px solid #f1f5f9;
+}
+.pcard-cat {
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: #3b82f6; margin-bottom: 5px;
+}
+.pcard-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem; font-weight: 700; color: #0f172a;
+    line-height: 1.35; margin-bottom: 5px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.pcard-model {
+    font-size: 0.7rem; color: #94a3b8; font-family: monospace;
+    margin-bottom: 8px;
+}
+.pcard-desc {
+    font-size: 0.78rem; color: #64748b; line-height: 1.6;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    flex: 1; margin-bottom: 12px;
+}
+.pcard-cta {
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    background: linear-gradient(135deg,#3b82f6,#1e3a8a);
+    color: #fff; border-radius: 8px;
+    padding: 9px 0; font-size: 0.74rem; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    transition: box-shadow 0.2s, opacity 0.2s;
+}
+.pcard:hover .pcard-cta { box-shadow: 0 6px 18px rgba(30,58,138,0.35); }
 
-    /* Divider line between image and text */
-    .pcard-divider { height: 1px; background: #f0f0f0; margin: 0 20px; }
+/* Mobile: tighter body */
+@media (max-width: 720px) {
+    .pcard-body { padding: 10px 12px 14px; }
+    .pcard-name { font-size: 0.82rem; }
+    .pcard-desc { display: none; }
+    .pcard-cta { padding: 8px 0; font-size: 0.7rem; }
+    .pcard-img { padding: 14px; }
+}
 
-    /* Card body */
-    .pcard-body {
-        padding: 36px 36px 42px;
-    }
-    .pcard-name {
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 1.5rem; font-weight: 700; color: #1a5c1a;
-        line-height: 1.3; margin-bottom: 10px;
-    }
-    .pcard-model {
-        font-size: 0.9rem; color: #999; margin-bottom: 18px;
-        font-family: monospace;
-    }
-    .pcard-desc {
-        font-size: 0.95rem; color: #666; line-height: 1.65;
-        margin-bottom: 26px;
-        display: -webkit-box; -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical; overflow: hidden;
-    }
-
-    /* Read More button */
-    .pcard-btn {
-        display: inline-block;
-        background: #111; color: #fff;
-        padding: 16px 52px; border-radius: 100px;
-        font-size: 0.88rem; font-weight: 800;
-        letter-spacing: 0.12em; text-transform: uppercase;
-        border: none; cursor: pointer;
-        transition: background 0.2s, transform 0.2s;
-        margin-bottom: 4px;
-    }
-    .pcard-btn:hover { background: #1e3a8a; transform: translateY(-1px); }
-
-    /* ── Empty state ── */
-    .empty-state {
-        text-align: center; padding: 100px 20px; color: #94a3b8;
-    }
-
-    /* ── MODAL ── */
-    #prodModal {
-        display: none; position: fixed; inset: 0; z-index: 2000;
-        background: rgba(10,22,40,0.7); backdrop-filter: blur(8px);
-        align-items: center; justify-content: center; padding: 20px;
-    }
-    #prodModal.open { display: flex; }
-    .modal-card {
-        background: #fff; border-radius: 20px; overflow: hidden;
-        max-width: 860px; width: 100%;
-        display: grid; grid-template-columns: 1fr 1fr;
-        box-shadow: 0 40px 100px rgba(0,0,0,0.28);
-        max-height: 90vh; position: relative;
-    }
-    @media (max-width: 600px) {
-        .modal-card { grid-template-columns: 1fr; }
-        .modal-img-panel { min-height: 220px; }
-    }
-    .modal-img-panel {
-        background: #f8fafc;
-        display: flex; align-items: center; justify-content: center;
-        padding: 36px; min-height: 360px;
-    }
-    .modal-img-panel img {
-        max-width: 100%; max-height: 300px; object-fit: contain;
-        filter: drop-shadow(0 8px 24px rgba(15,23,42,0.1));
-    }
-    .modal-info { padding: 36px 32px; display: flex; flex-direction: column; overflow-y: auto; }
-    .modal-badge {
-        display: inline-block; padding: 4px 12px; border-radius: 100px;
-        font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
-        background: #eff6ff; color: #1e3a8a; border: 1px solid #dbeafe;
-        margin-bottom: 14px; width: fit-content;
-    }
-    .modal-name { font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 8px; line-height: 1.25; }
-    .modal-model { font-size: 0.82rem; color: #94a3b8; font-family: monospace; margin-bottom: 18px; }
-    .modal-hr { height: 1px; background: #f1f5f9; margin-bottom: 18px; }
-    .modal-desc { font-size: 0.9rem; color: #475569; line-height: 1.8; flex: 1; }
-    .modal-enquire {
-        margin-top: 24px; padding: 14px 18px;
-        background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 10px;
-        font-size: 0.82rem; color: #0369a1;
-    }
-    .modal-enquire strong { display: block; color: #0f172a; margin-bottom: 2px; }
-    .modal-close {
-        position: absolute; top: 14px; right: 14px;
-        width: 34px; height: 34px; border-radius: 50%;
-        background: #fff; border: 1px solid #e2e8f0;
-        display: flex; align-items: center; justify-content: center;
-        cursor: pointer; font-size: 1rem; color: #64748b;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: all 0.2s;
-    }
-    .modal-close:hover { background: #fee2e2; color: #dc2626; }
+/* ── Empty ── */
+.empty-state {
+    text-align: center; padding: 80px 20px; color: #94a3b8;
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="catalog-page">
-<div style="max-width:1280px;margin:0 auto;padding:0 28px 60px;">
+<div style="background:#f8fafc;min-height:60vh;">
+<div style="max-width:1380px;margin:0 auto;padding:0 20px 72px;">
 
-    {% if grouped %}
+{% if grouped %}
 
-    <!-- Filter tabs -->
-    <div class="filter-bar mb-2">
-        <button class="filter-btn {% if not active_cat %}active{% endif %}" data-cat="all">
-            All &nbsp;<span style="opacity:.55;font-weight:400">({{ grouped.values()|map('length')|sum }})</span>
-        </button>
-        {% for cat in categories %}{% if cat in grouped %}
-        <button class="filter-btn {% if active_cat == cat %}active{% endif %}" data-cat="{{ cat }}">
-            {{ cat }} &nbsp;<span style="opacity:.55;font-weight:400">({{ grouped[cat]|length }})</span>
-        </button>
-        {% endif %}{% endfor %}
+<!-- Filter bar -->
+<div class="filter-wrap">
+    <button class="filter-btn {% if not active_cat %}active{% endif %}" data-cat="all">
+        All &nbsp;<span style="opacity:.5;font-weight:400;">({{ grouped.values()|map('length')|sum }})</span>
+    </button>
+    {% for cat in categories %}{% if cat in grouped %}
+    <button class="filter-btn {% if active_cat == cat %}active{% endif %}" data-cat="{{ cat }}">
+        {{ cat }} &nbsp;<span style="opacity:.5;font-weight:400;">({{ grouped[cat]|length }})</span>
+    </button>
+    {% endif %}{% endfor %}
+</div>
+
+<!-- Category sections -->
+{% for cat in categories %}{% if cat in grouped %}
+{% set anchor = 'iols' if cat == 'Intraocular Lenses' else 'eye-machines' %}
+<div class="cat-section" id="{{ anchor }}" data-section="{{ cat }}"
+     {% if active_cat and active_cat != cat %}style="display:none"{% endif %}>
+
+    <div class="cat-header">
+        <h2>{{ cat }}</h2>
+        <span class="cat-count">{{ grouped[cat]|length }} product{{ 's' if grouped[cat]|length != 1 }}</span>
     </div>
 
-    <!-- Sections -->
-    {% for cat in categories %}{% if cat in grouped %}
-    {% set anchor = 'iols' if cat == 'Intraocular Lenses' else 'eye-machines' %}
-    <div class="cat-section" id="{{ anchor }}" data-section="{{ cat }}"
-         {% if active_cat and active_cat != cat %}style="display:none"{% endif %}>
-        <div class="cat-heading">
-            <h2>{{ cat }}</h2>
-            <span class="count">{{ grouped[cat]|length }} item{% if grouped[cat]|length != 1 %}s{% endif %}</span>
-        </div>
-
-        <div class="catalog-grid">
-            {% for item in grouped[cat] %}
-            <a class="pcard" href="/catalog/{{ item.id }}" target="_self" style="text-decoration:none;display:block;">
-                <!-- Image -->
-                <div class="pcard-img-wrap">
-                    <img src="{{ url_for('static', filename='uploads/catalog/' ~ item.image_filename) }}"
-                         alt="{{ item.name }}" loading="lazy">
-                    <div class="pcard-zoom">
-                        <div class="pcard-zoom-icon">
-                            <i data-lucide="arrow-right" style="width:18px;height:18px;color:#1e3a8a;"></i>
-                        </div>
+    <div class="prod-grid">
+        {% for item in grouped[cat] %}
+        {% set img_src = item.image_filename if (item.image_filename and (item.image_filename.startswith('http://') or item.image_filename.startswith('https://'))) else url_for('static', filename='uploads/catalog/' ~ (item.image_filename or '')) %}
+        <a class="pcard" href="/catalog/{{ item.id }}" target="_self">
+            <div class="pcard-img">
+                {% if item.image_filename %}
+                <img src="{{ img_src }}" alt="{{ item.name }}" loading="lazy">
+                {% else %}
+                <div style="width:64px;height:64px;background:#e2e8f0;border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                    <i data-lucide="package" style="width:28px;height:28px;color:#94a3b8;"></i>
+                </div>
+                {% endif %}
+                <div class="pcard-overlay">
+                    <div class="pcard-overlay-btn">
+                        <i data-lucide="eye" style="width:12px;height:12px;"></i>
+                        View
                     </div>
                 </div>
-
-                <div class="pcard-divider"></div>
-
-                <!-- Body -->
-                <div class="pcard-body">
-                    <div class="pcard-name">{{ item.name }}</div>
-                    {% if item.model_no %}<div class="pcard-model">{{ item.model_no }}</div>{% endif %}
-                    {% if item.description %}<div class="pcard-desc">{{ item.description }}</div>{% endif %}
-
-                    <span class="pcard-btn">View Details</span>
+            </div>
+            <div class="pcard-body">
+                <div class="pcard-cat">{{ cat }}</div>
+                <div class="pcard-name">{{ item.name }}</div>
+                {% if item.model_no %}<div class="pcard-model">{{ item.model_no }}</div>{% endif %}
+                {% if item.description %}<div class="pcard-desc">{{ item.description }}</div>{% endif %}
+                <div class="pcard-cta">
+                    <i data-lucide="arrow-right" style="width:13px;height:13px;"></i>
+                    View Details
                 </div>
-            </a>
-            {% endfor %}
-        </div>
+            </div>
+        </a>
+        {% endfor %}
     </div>
-    {% endif %}{% endfor %}
+</div>
+{% endif %}{% endfor %}
 
-    {% else %}
-    <div class="empty-state" style="padding-top:80px;">
-        <i data-lucide="package-open" style="width:56px;height:56px;margin:0 auto 16px;display:block;color:#cbd5e1;"></i>
-        <p style="font-size:1.1rem;font-weight:600;color:#475569;margin-bottom:6px;">No products in the catalog yet</p>
-        <p style="font-size:0.88rem;">Check back soon — we're adding products.</p>
-    </div>
-    {% endif %}
+{% else %}
+<div class="empty-state" style="padding-top:80px;">
+    <i data-lucide="package-open" style="width:52px;height:52px;margin:0 auto 14px;display:block;color:#cbd5e1;"></i>
+    <p style="font-size:1rem;font-weight:600;color:#475569;margin-bottom:4px;">No products yet</p>
+    <p style="font-size:0.85rem;">Check back soon — we're adding products.</p>
+</div>
+{% endif %}
 
 </div>
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
-// Filter buttons
 document.querySelectorAll('.filter-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
         document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
@@ -298,6 +252,12 @@ document.querySelectorAll('.filter-btn').forEach(function(btn) {
         document.querySelectorAll('.cat-section').forEach(function(s){
             s.style.display = (cat === 'all' || s.dataset.section === cat) ? '' : 'none';
         });
+        // update URL without reload
+        var url = new URL(window.location);
+        if (cat === 'all') { url.searchParams.delete('cat'); }
+        else { url.searchParams.set('cat', cat === 'Intraocular Lenses' ? 'iols' : 'eye-machines'); }
+        history.replaceState({}, '', url);
     });
 });
+lucide.createIcons();
 {% endblock %}
