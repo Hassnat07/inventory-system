@@ -1,2 +1,2 @@
 [phases.setup]
-nixPkgs = ["postgresql_15"]
+nixPkgs = ["python311", "postgresql_15"]
