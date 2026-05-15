@@ -209,7 +209,7 @@
                 <div class="gallery-track" id="track">
                     {% for img in all_images %}
                     <div class="gallery-slide">
-                        <img src="{{ url_for('static', filename='uploads/catalog/' ~ img) }}"
+                        <img src="{{ (img if (img.startswith('http://') or img.startswith('https://')) else url_for('static', filename='uploads/catalog/' ~ img)) }}"
                              alt="{{ item.name }} — image {{ loop.index }}" loading="{% if loop.first %}eager{% else %}lazy{% endif %}">
                     </div>
                     {% endfor %}
@@ -232,7 +232,7 @@
             <div class="gallery-thumbs" id="thumbs">
                 {% for img in all_images %}
                 <div class="gallery-thumb {% if loop.first %}active{% endif %}" onclick="goTo({{ loop.index0 }})">
-                    <img src="{{ url_for('static', filename='uploads/catalog/' ~ img) }}" alt="">
+                    <img src="{{ (img if (img.startswith('http://') or img.startswith('https://')) else url_for('static', filename='uploads/catalog/' ~ img)) }}" alt="">
                 </div>
                 {% endfor %}
             </div>
