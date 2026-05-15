@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% block title %}{{ conf.title }} Photos{% endblock %}
+{% block meta_desc %}Photos from Ramay Electromedix at {{ conf.title }} in {{ conf.location }}.{% endblock %}
+
+{% block breadcrumb %}
+<span>/</span>
+<a href="/conferences" target="_self">Conferences</a>
+<span>/</span>
+<a href="/conferences/{{ conf.year }}" target="_self" class="current">{{ conf.year }}</a>
+{% endblock %}
+{% block section_label %}Conference Gallery{% endblock %}
+{% block page_title %}{{ conf.title }}{% endblock %}
+{% block page_subtitle %}{{ conf.location }} &nbsp;·&nbsp; {{ images|length }} photo{{ 's' if images|length != 1 }}{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .photo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 14px;
+    }
+    .photo-item {
+        position: relative; border-radius: 12px;
+        overflow: hidden; cursor: pointer;
+        background: #f1f5f9; border: 1px solid #e2e8f0;
+        aspect-ratio: 4/3;
+        transition: transform 0.25s, box-shadow 0.25s;
+    }
+    .photo-item:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(15,23,42,0.12); }
+    .photo-item img {
+        width: 100%; height: 100%;
+        object-fit: cover; display: block;
+        transition: transform 0.35s ease;
+    }
+    .photo-item:hover img { transform: scale(1.05); }
+    .photo-item .overlay {
+        position: absolute; inset: 0;
+        background: rgba(10,22,40,0);
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        transition: background 0.25s;
+    }
+    .photo-item:hover .overlay { background: rgba(10,22,40,0.32); }
+    .photo-item .zoom-icon {
+        color: #fff; opacity: 0;
+        transition: opacity 0.25s, transform 0.25s;
+        transform: scale(0.8);
+        filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+    }
+    .photo-item:hover .zoom-icon { opacity: 1; transform: scale(1); }
+    .photo-item .caption-bar {
+        position: absolute; bottom: 0; left: 0; right: 0;
+        background: linear-gradient(transparent, rgba(10,22,40,0.75));
+        padding: 20px 12px 10px;
+        transform: translateY(100%); transition: transform 0.25s;
+    }
+    .photo-item:hover .caption-bar { transform: translateY(0); }
+    .photo-item .caption-bar span {
+        color: #fff; font-size: 0.75rem; font-weight: 500;
+        display: -webkit-box; -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical; overflow: hidden;
+    }
+
+    /* Lightbox */
+    #lightbox {
+        display: none; position: fixed; inset: 0; z-index: 9999;
+        background: rgba(5,10,24,0.97); backdrop-filter: blur(12px);
+        flex-direction: column; align-items: center; justify-content: center;
+    }
+    #lightbox.open { display: flex; }
+    #lb-img {
+        max-width: 90vw; max-height: 75vh;
+        border-radius: 10px; object-fit: contain;
+        box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+        transition: opacity 0.18s ease;
+    }
+    .lb-nav {
+        position: absolute; top: 50%; transform: translateY(-50%);
+        background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+        color: #fff; width: 56px; height: 56px; border-radius: 50%;
+        font-size: 1.6rem; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.2s; z-index: 2; user-select: none;
+    }
+    .lb-nav:hover { background: rgba(255,255,255,0.2); }
+    #lb-prev { left: 20px; }
+    #lb-next { right: 20px; }
+    #lb-close {
+        position: absolute; top: 20px; right: 24px;
+        background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+        color: #fff; width: 44px; height: 44px; border-radius: 50%;
+        font-size: 1.3rem; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.2s;
+    }
+    #lb-close:hover { background: rgba(220,38,38,0.55); }
+    #lb-footer {
+        margin-top: 18px; display: flex; flex-direction: column;
+        align-items: center; gap: 8px;
+    }
+    #lb-counter { color: rgba(255,255,255,0.4); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; }
+    #lb-caption-text { color: rgba(255,255,255,0.7); font-size: 0.88rem; text-align: center; max-width: 500px; min-height: 1.3em; }
+    #lb-strip {
+        display: flex; gap: 8px; max-width: 90vw;
+        overflow-x: auto; padding: 2px 4px; margin-top: 4px;
+        scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent;
+    }
+    #lb-strip::-webkit-scrollbar { height: 4px; }
+    #lb-strip::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+    .lb-thumb {
+        width: 64px; height: 48px; object-fit: cover;
+        border-radius: 6px; cursor: pointer; flex-shrink: 0;
+        opacity: 0.45; border: 2px solid transparent;
+        transition: all 0.2s;
+    }
+    .lb-thumb.active { opacity: 1; border-color: #3b82f6; }
+    .lb-thumb:hover { opacity: 0.85; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+
+        <!-- Back link + meta row -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10 reveal">
+            <a href="/conferences" target="_self"
+               class="inline-flex items-center gap-2 text-sm font-semibold text-[#1e3a8a] hover:text-[#3b82f6] transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                All Conferences
+            </a>
+            {% if images %}
+            <div class="flex items-center gap-3">
+                <span class="text-sm text-[#94a3b8]">{{ images|length }} photo{{ 's' if images|length != 1 }}</span>
+                <span class="text-[#e2e8f0]">·</span>
+                <button onclick="openGallery(0)"
+                    class="btn-primary" style="padding:8px 18px;font-size:0.78rem;">
+                    <i data-lucide="play-circle" class="w-4 h-4"></i>
+                    Slideshow
+                </button>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Conference info card -->
+        <div class="card mb-12 reveal">
+            <div class="flex items-start gap-4">
+                <div class="icon-box flex-shrink-0">
+                    <i data-lucide="camera" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h2 class="font-display font-bold text-2xl text-[#0f172a] mb-1">{{ conf.title }}</h2>
+                    <div class="flex items-center gap-4 text-sm text-[#475569] flex-wrap">
+                        <span class="flex items-center gap-1.5">
+                            <i data-lucide="map-pin" class="w-4 h-4 text-[#3b82f6]"></i>
+                            {{ conf.location }}
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <i data-lucide="image" class="w-4 h-4 text-[#3b82f6]"></i>
+                            {{ images|length }} photo{{ 's' if images|length != 1 }}
+                        </span>
+                    </div>
+                    <p class="text-[#475569] text-sm mt-3 leading-relaxed">{{ conf.description }}</p>
+                </div>
+            </div>
+        </div>
+
+        {% if images %}
+        <!-- Photo grid -->
+        <div class="photo-grid reveal">
+            {% for img in images %}
+            <div class="photo-item" onclick="openGallery({{ loop.index0 }})">
+                <img src="{{ img.url }}" alt="{{ img.caption or (conf.title ~ ' photo ' ~ loop.index) }}" loading="lazy">
+                <div class="overlay">
+                    <svg class="zoom-icon" width="40" height="40" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+                    </svg>
+                    {% if img.caption %}
+                    <div class="caption-bar"><span>{{ img.caption }}</span></div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <div class="text-center py-20 reveal">
+            <i data-lucide="image-off" style="width:52px;height:52px;color:#cbd5e1;margin:0 auto 16px;display:block;"></i>
+            <p class="text-[#94a3b8] font-medium">No photos uploaded yet.</p>
+            <p class="text-sm text-[#cbd5e1] mt-1">Check back soon.</p>
+        </div>
+        {% endif %}
+
+        <!-- Bottom nav -->
+        <div class="mt-14 flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-[#e2e8f0] reveal">
+            <a href="/conferences" target="_self"
+               class="btn-outline inline-flex items-center gap-2">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Back to All Conferences
+            </a>
+            <a href="/contact" target="_self" class="btn-primary">
+                <i data-lucide="mail" class="w-4 h-4"></i>
+                Contact Us
+            </a>
+        </div>
+
+    </div>
+</section>
+
+<!-- Lightbox -->
+<div id="lightbox">
+    <button id="lb-close" onclick="closeLightbox()" title="Close (Esc)">&times;</button>
+    <button class="lb-nav" id="lb-prev" onclick="lbMove(-1)">&#8249;</button>
+    <img id="lb-img" src="" alt="">
+    <button class="lb-nav" id="lb-next" onclick="lbMove(1)">&#8250;</button>
+    <div id="lb-footer">
+        <div id="lb-counter"></div>
+        <div id="lb-caption-text"></div>
+        <div id="lb-strip"></div>
+    </div>
+</div>
+
+<script>
+var IMAGES = {{ images | map(attribute='url') | list | tojson }};
+var CAPTIONS = {{ images | map(attribute='caption') | list | tojson }};
+var currentIdx = 0;
+
+function openGallery(idx) {
+    currentIdx = idx;
+    document.getElementById('lightbox').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    buildStrip();
+    renderLightbox();
+}
+function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+    document.body.style.overflow = '';
+}
+function lbMove(dir) {
+    currentIdx = (currentIdx + dir + IMAGES.length) % IMAGES.length;
+    renderLightbox();
+}
+function buildStrip() {
+    var strip = document.getElementById('lb-strip');
+    strip.innerHTML = '';
+    IMAGES.forEach(function(url, i) {
+        var img = document.createElement('img');
+        img.src = url;
+        img.className = 'lb-thumb' + (i === currentIdx ? ' active' : '');
+        img.onclick = function() { currentIdx = i; renderLightbox(); };
+        strip.appendChild(img);
+    });
+}
+function renderLightbox() {
+    var el = document.getElementById('lb-img');
+    el.style.opacity = '0';
+    setTimeout(function() {
+        el.src = IMAGES[currentIdx];
+        el.style.opacity = '1';
+    }, 120);
+    document.getElementById('lb-counter').textContent = (currentIdx + 1) + ' / ' + IMAGES.length;
+    document.getElementById('lb-caption-text').textContent = CAPTIONS[currentIdx] || '';
+    // Update strip
+    var thumbs = document.querySelectorAll('.lb-thumb');
+    thumbs.forEach(function(t, i) { t.classList.toggle('active', i === currentIdx); });
+    // Scroll strip to active
+    if (thumbs[currentIdx]) {
+        thumbs[currentIdx].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+    // Hide arrows if only 1 image
+    var showNav = IMAGES.length > 1;
+    document.getElementById('lb-prev').style.display = showNav ? 'flex' : 'none';
+    document.getElementById('lb-next').style.display = showNav ? 'flex' : 'none';
+}
+// Keyboard nav
+document.addEventListener('keydown', function(e) {
+    if (!document.getElementById('lightbox').classList.contains('open')) return;
+    if (e.key === 'ArrowLeft')  lbMove(-1);
+    if (e.key === 'ArrowRight') lbMove(1);
+    if (e.key === 'Escape')     closeLightbox();
+});
+// Click backdrop to close
+document.getElementById('lightbox').addEventListener('click', function(e) {
+    if (e.target === this) closeLightbox();
+});
+</script>
+{% endblock %}
