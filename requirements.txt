@@ -4,4 +4,4 @@ reportlab
 num2words
 psycopg2-binary
 python-dotenv
-Pillow
+Pillow>=10.0.0
