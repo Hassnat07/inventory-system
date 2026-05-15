@@ -5,13 +5,7 @@ from database import get_db
 
 conference_bp = Blueprint("conferences", __name__)
 
-UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "static", "uploads", "conferences")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "gif"}
-
-# ── Image compression settings ──
-MAX_WIDTH  = 1200   # px — enough for full-screen display
-MAX_HEIGHT = 900    # px
-JPEG_QUALITY = 78   # 78% — visually identical, ~60-70% smaller file
 
 CONFERENCE_YEARS = [
     {"year": 2024, "title": "Stallin Conference 2024", "location": "Lahore, Punjab"},
@@ -30,47 +24,66 @@ def _allowed(filename):
 
 
 def _save_file(file):
-    """Save image with auto-compression and resizing using Pillow."""
+    """Upload image to Cloudinary. Falls back to Pillow-compressed local save."""
     try:
-        from PIL import Image as PILImage, ImageOps
+        import cloudinary
+        import cloudinary.uploader
 
-        filename = f"{uuid.uuid4().hex}.jpg"   # always save as JPEG for best compression
-        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-        save_path = os.path.join(UPLOAD_FOLDER, filename)
+        # Upload to Cloudinary with auto-compression
+        result = cloudinary.uploader.upload(
+            file,
+            folder="conferences",
+            transformation=[
+                {"width": 1200, "height": 900, "crop": "limit"},
+                {"quality": "auto:good"},
+                {"fetch_format": "auto"},
+            ]
+        )
+        # Return the Cloudinary secure URL as the "filename"
+        return result["secure_url"]
 
-        img = PILImage.open(file.stream)
-
-        # Convert non-RGB modes (JPEG doesn't support transparency)
-        if img.mode in ("RGBA", "P", "LA"):
-            background = PILImage.new("RGB", img.size, (255, 255, 255))
-            if img.mode == "P":
-                img = img.convert("RGBA")
-            background.paste(img, mask=img.split()[-1] if img.mode in ("RGBA", "LA") else None)
-            img = background
-        elif img.mode != "RGB":
-            img = img.convert("RGB")
-
-        # Auto-rotate based on EXIF (fixes sideways phone photos)
+    except Exception:
+        # Fallback: save locally with Pillow compression
         try:
-            img = ImageOps.exif_transpose(img)
-        except Exception:
-            pass
+            from PIL import Image as PILImage, ImageOps
 
-        # Resize if larger than MAX dimensions (keeps aspect ratio)
-        img.thumbnail((MAX_WIDTH, MAX_HEIGHT), PILImage.LANCZOS)
+            upload_folder = os.path.join(os.path.dirname(__file__), "static", "uploads", "conferences")
+            filename = f"{uuid.uuid4().hex}.jpg"
+            os.makedirs(upload_folder, exist_ok=True)
+            save_path = os.path.join(upload_folder, filename)
 
-        # Save compressed JPEG
-        img.save(save_path, "JPEG", quality=JPEG_QUALITY, optimize=True)
-        return filename
+            img = PILImage.open(file.stream)
+            if img.mode in ("RGBA", "P", "LA"):
+                background = PILImage.new("RGB", img.size, (255, 255, 255))
+                if img.mode == "P":
+                    img = img.convert("RGBA")
+                background.paste(img, mask=img.split()[-1] if img.mode in ("RGBA", "LA") else None)
+                img = background
+            elif img.mode != "RGB":
+                img = img.convert("RGB")
+            try:
+                img = ImageOps.exif_transpose(img)
+            except Exception:
+                pass
+            img.thumbnail((1200, 900), PILImage.LANCZOS)
+            img.save(save_path, "JPEG", quality=78, optimize=True)
+            return filename  # local filename
 
-    except ImportError:
-        # Pillow not installed — save original unchanged
-        ext = file.filename.rsplit(".", 1)[1].lower()
-        filename = f"{uuid.uuid4().hex}.{ext}"
-        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-        file.seek(0)
-        file.save(os.path.join(UPLOAD_FOLDER, filename))
-        return filename
+        except ImportError:
+            ext = file.filename.rsplit(".", 1)[1].lower()
+            filename = f"{uuid.uuid4().hex}.{ext}"
+            upload_folder = os.path.join(os.path.dirname(__file__), "static", "uploads", "conferences")
+            os.makedirs(upload_folder, exist_ok=True)
+            file.seek(0)
+            file.save(os.path.join(upload_folder, filename))
+            return filename
+
+
+def _image_url(filename):
+    """Return a usable URL from either a Cloudinary URL or a local filename."""
+    if filename and (filename.startswith("http://") or filename.startswith("https://")):
+        return filename  # already a full Cloudinary URL
+    return url_for("static", filename=f"uploads/conferences/{filename}")
 
 
 # ── Public: fetch images for a given year ──
@@ -84,7 +97,7 @@ def get_images_for_year(year):
     rows = cur.fetchall()
     cur.close()
     con.close()
-    return [{"id": r[0], "filename": r[1], "caption": r[2]} for r in rows]
+    return [{"id": r[0], "filename": r[1], "caption": r[2], "url": _image_url(r[1])} for r in rows]
 
 
 # ── Admin panel ──
@@ -106,7 +119,7 @@ def admin_conferences():
             (y,)
         )
         images_by_year[y] = [
-            {"id": r[0], "filename": r[1], "caption": r[2], "sort_order": r[3]}
+            {"id": r[0], "filename": r[1], "caption": r[2], "sort_order": r[3], "url": _image_url(r[1])}
             for r in cur.fetchall()
         ]
 
@@ -121,7 +134,7 @@ def admin_conferences():
     )
 
 
-# ── Upload images (AJAX endpoint — returns JSON) ──
+# ── Upload images (AJAX endpoint) ──
 @conference_bp.route("/admin/conferences/<int:year>/add-images", methods=["POST"])
 def add_conference_images(year):
     if not _admin_required():
@@ -142,11 +155,11 @@ def add_conference_images(year):
     for f in files:
         if f and f.filename and _allowed(f.filename):
             try:
-                filename = _save_file(f)
+                filename_or_url = _save_file(f)
                 max_order += 1
                 cur.execute(
                     "INSERT INTO conference_images (year, image_filename, caption, sort_order) VALUES (%s, %s, %s, %s)",
-                    (year, filename, caption or None, max_order)
+                    (year, filename_or_url, caption or None, max_order)
                 )
                 saved += 1
             except Exception as e:
@@ -156,13 +169,11 @@ def add_conference_images(year):
     cur.close()
     con.close()
 
-    # AJAX response
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         if saved:
             return jsonify({"success": True, "saved": saved, "errors": errors})
         return jsonify({"success": False, "errors": errors or ["No valid images uploaded."]}), 400
 
-    # Non-JS fallback
     if saved:
         flash(f"{saved} image{'s' if saved > 1 else ''} uploaded to {year}.", "success")
     else:
@@ -182,9 +193,23 @@ def delete_conference_image(image_id):
     row = cur.fetchone()
 
     if row:
-        filepath = os.path.join(UPLOAD_FOLDER, row[0])
-        if os.path.exists(filepath):
-            os.remove(filepath)
+        filename = row[0]
+        # Delete from Cloudinary if it's a Cloudinary URL
+        if filename and (filename.startswith("http://") or filename.startswith("https://")):
+            try:
+                import cloudinary
+                import cloudinary.uploader
+                # Extract public_id from URL
+                public_id = "conferences/" + filename.split("/")[-1].rsplit(".", 1)[0]
+                cloudinary.uploader.destroy(public_id)
+            except Exception:
+                pass
+        else:
+            # Delete local file
+            filepath = os.path.join(os.path.dirname(__file__), "static", "uploads", "conferences", filename)
+            if os.path.exists(filepath):
+                os.remove(filepath)
+
         cur.execute("DELETE FROM conference_images WHERE id = %s", (image_id,))
         con.commit()
         flash("Image deleted.", "success")
