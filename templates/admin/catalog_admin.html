@@ -7,62 +7,104 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <style>
         *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
         body { font-family:'Inter',sans-serif; background:#f1f5f9; color:#0f172a; }
         .font-display { font-family:'Space Grotesk',sans-serif; }
-        .form-input {
-            background:#fff; border:1px solid #e2e8f0;
-            width:100%; padding:10px 14px; border-radius:8px;
-            font-size:0.88rem; transition:all 0.2s; color:#0f172a;
-        }
+        .form-input { background:#fff; border:1px solid #e2e8f0; width:100%; padding:10px 14px; border-radius:8px; font-size:0.88rem; transition:all 0.2s; color:#0f172a; }
         .form-input:focus { outline:none; border-color:#1e3a8a; box-shadow:0 0 0 3px rgba(30,58,138,0.07); }
         .form-input::placeholder { color:#94a3b8; }
-        .btn-primary {
-            background:linear-gradient(135deg,#3b82f6,#1e3a8a);
-            color:#fff; padding:10px 22px; border-radius:8px;
-            font-weight:700; font-size:0.82rem; letter-spacing:0.05em;
-            text-transform:uppercase; border:none; cursor:pointer;
-            display:inline-flex; align-items:center; gap:8px;
-            transition:all 0.25s; box-shadow:0 4px 14px rgba(30,58,138,0.3);
-        }
-        .btn-primary:hover { transform:translateY(-1px); box-shadow:0 8px 20px rgba(30,58,138,0.4); }
-        .btn-danger {
-            background:#fef2f2; color:#dc2626; border:1px solid #fecaca;
-            padding:6px 14px; border-radius:6px; font-size:0.78rem; font-weight:600;
-            cursor:pointer; transition:all 0.2s;
-        }
+        .btn-primary { background:linear-gradient(135deg,#3b82f6,#1e3a8a); color:#fff; padding:10px 22px; border-radius:8px; font-weight:700; font-size:0.82rem; letter-spacing:0.05em; text-transform:uppercase; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:8px; transition:all 0.25s; box-shadow:0 4px 14px rgba(30,58,138,0.3); }
+        .btn-primary:hover { transform:translateY(-1px); }
+        .btn-danger { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; padding:6px 14px; border-radius:6px; font-size:0.78rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
         .btn-danger:hover { background:#dc2626; color:#fff; }
         .tag { display:inline-block; padding:3px 10px; border-radius:100px; font-size:0.72rem; font-weight:600; background:#eff6ff; color:#1e3a8a; border:1px solid #dbeafe; }
         .flash-success { background:#f0fdf4; border:1px solid #bbf7d0; color:#15803d; padding:12px 16px; border-radius:10px; font-size:0.88rem; }
         .flash-error   { background:#fef2f2; border:1px solid #fecaca; color:#dc2626; padding:12px 16px; border-radius:10px; font-size:0.88rem; }
 
-        /* drop zone */
-        #drop-zone {
-            border:2px dashed #cbd5e1; border-radius:12px;
-            padding:32px 20px; text-align:center; cursor:pointer;
-            transition:all 0.2s; position:relative; background:#f8fafc;
-        }
+        #drop-zone { border:2px dashed #cbd5e1; border-radius:12px; padding:32px 20px; text-align:center; cursor:pointer; transition:all 0.2s; position:relative; background:#f8fafc; }
         #drop-zone.dragover { border-color:#3b82f6; background:#eff6ff; }
         #drop-zone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
-        #preview-wrap { display:none; margin-top:12px; }
-        #preview-wrap img { max-height:140px; border-radius:8px; object-fit:contain; border:1px solid #e2e8f0; }
 
-        /* item grid */
-        .item-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:20px; }
-        .item-card { background:#fff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; transition:box-shadow 0.2s; }
+        /* ── Sort grid ── */
+        .sort-group { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:16px; }
+
+        /* ── Item card ── */
+        .item-card {
+            background:#fff; border:1px solid #e2e8f0; border-radius:12px;
+            overflow:hidden; transition:box-shadow 0.2s, transform 0.15s;
+            position:relative;
+        }
         .item-card:hover { box-shadow:0 8px 24px rgba(15,23,42,0.08); }
-        .item-card img { width:100%; height:160px; object-fit:cover; background:#f8fafc; }
-        .item-card .info { padding:12px 14px; }
-        .item-card .info .name { font-weight:700; font-size:0.9rem; margin-bottom:4px; }
-        .item-card .info .model { font-size:0.74rem; color:#94a3b8; margin-bottom:6px; }
-        .item-card .info .desc { font-size:0.78rem; color:#475569; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-        .item-card .actions { padding:10px 14px; border-top:1px solid #f1f5f9; display:flex; justify-content:flex-end; }
+
+        /* drag handle bar at top */
+        .drag-handle {
+            background: linear-gradient(135deg,#f8fafc,#f1f5f9);
+            border-bottom:1px solid #e2e8f0;
+            padding:7px 12px;
+            display:flex; align-items:center; gap:7px;
+            cursor:grab; user-select:none;
+        }
+        .drag-handle:active { cursor:grabbing; }
+        .drag-handle .grip { color:#94a3b8; display:flex; align-items:center; }
+        .drag-handle .pos-badge {
+            background:#e2e8f0; color:#64748b;
+            font-size:0.65rem; font-weight:800; letter-spacing:0.06em;
+            padding:2px 7px; border-radius:100px; margin-left:auto;
+        }
+        .drag-handle span { font-size:0.7rem; color:#94a3b8; font-weight:600; }
+
+        /* card being dragged */
+        .item-card.sortable-drag { opacity:0.4; }
+        .item-card.sortable-ghost {
+            opacity:0.5; border:2px dashed #3b82f6;
+            background:#eff6ff; transform:rotate(1deg);
+        }
+        .item-card.sortable-chosen { box-shadow:0 16px 40px rgba(30,58,138,0.2); transform:scale(1.02); z-index:10; }
+
+        .item-card img { width:100%; height:140px; object-fit:cover; background:#f8fafc; display:block; }
+        .item-card .info { padding:10px 12px; }
+        .item-card .info .name { font-weight:700; font-size:0.86rem; margin-bottom:3px; line-height:1.3; }
+        .item-card .info .model { font-size:0.72rem; color:#94a3b8; margin-bottom:4px; }
+        .item-card .info .desc { font-size:0.76rem; color:#475569; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+        .item-card .actions { padding:8px 12px; border-top:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; gap:6px; flex-wrap:wrap; }
+
+        /* save order banner */
+        #save-banner {
+            display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+            background:#0f172a; color:#fff; border-radius:100px;
+            padding:12px 22px; font-size:0.85rem; font-weight:600;
+            box-shadow:0 12px 40px rgba(15,23,42,0.35);
+            display:none; align-items:center; gap:12px; z-index:100;
+            white-space:nowrap;
+        }
+        #save-banner.visible { display:flex !important; }
+        #save-banner .save-btn {
+            background: linear-gradient(135deg,#3b82f6,#1e3a8a);
+            border:none; color:#fff; padding:7px 18px; border-radius:100px;
+            font-size:0.78rem; font-weight:700; cursor:pointer;
+            letter-spacing:0.04em; text-transform:uppercase;
+        }
+        #save-banner .discard-btn {
+            background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2);
+            color:#fff; padding:7px 14px; border-radius:100px;
+            font-size:0.78rem; font-weight:600; cursor:pointer;
+        }
+
+        /* category section headers */
+        .cat-section-header {
+            display:flex; align-items:center; gap:10px;
+            margin:28px 0 14px; padding-bottom:10px;
+            border-bottom:2px solid #e2e8f0;
+        }
+        .cat-section-header h3 { font-family:'Space Grotesk',sans-serif; font-size:1rem; font-weight:700; color:#0f172a; }
+        .cat-section-header .count { font-size:0.72rem; color:#94a3b8; font-weight:600; background:#f8fafc; border:1px solid #e2e8f0; padding:2px 8px; border-radius:100px; }
+        .drag-hint { font-size:0.72rem; color:#94a3b8; font-weight:500; display:flex; align-items:center; gap:4px; margin-left:auto; }
     </style>
 </head>
 <body>
 
-<!-- Top bar -->
 <header class="bg-white border-b border-[#e2e8f0] sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
         <div class="flex items-center gap-3">
@@ -88,7 +130,6 @@
 
 <main class="max-w-7xl mx-auto px-6 py-10">
 
-    <!-- Flash messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     <div class="mb-6 space-y-2">
@@ -104,15 +145,13 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-        <!-- ── Add Product Form ── -->
+        <!-- Add Product Form -->
         <div class="lg:col-span-1">
             <div class="bg-white border border-[#e2e8f0] rounded-2xl p-6 shadow-sm sticky top-20">
                 <h2 class="font-display text-lg font-bold mb-1">Add New Product</h2>
                 <p class="text-sm text-[#94a3b8] mb-6">Upload an image with product details to show in the catalog.</p>
 
-                <form action="/admin/catalog/add" method="POST" enctype="multipart/form-data" class="space-y-4" id="add-form">
-
-                    <!-- Image upload (multiple) -->
+                <form action="/admin/catalog/add" method="POST" enctype="multipart/form-data" class="space-y-4">
                     <div>
                         <label class="block text-xs font-semibold text-[#475569] uppercase tracking-wide mb-2">Product Images * <span class="font-normal normal-case text-[#94a3b8]">(select multiple)</span></label>
                         <div id="drop-zone">
@@ -126,14 +165,10 @@
                             <p id="preview-name" class="text-xs text-[#94a3b8] mt-2"></p>
                         </div>
                     </div>
-
-                    <!-- Name -->
                     <div>
                         <label class="block text-xs font-semibold text-[#475569] uppercase tracking-wide mb-2">Product Name *</label>
                         <input type="text" name="name" class="form-input" placeholder="e.g. AcrySof IQ Monofocal IOL" required>
                     </div>
-
-                    <!-- Category -->
                     <div>
                         <label class="block text-xs font-semibold text-[#475569] uppercase tracking-wide mb-2">Category *</label>
                         <select name="category" class="form-input" required>
@@ -143,19 +178,14 @@
                             {% endfor %}
                         </select>
                     </div>
-
-                    <!-- Model No -->
                     <div>
                         <label class="block text-xs font-semibold text-[#475569] uppercase tracking-wide mb-2">Model / Part No <span class="font-normal normal-case text-[#94a3b8]">(optional)</span></label>
                         <input type="text" name="model_no" class="form-input" placeholder="e.g. SN60WF">
                     </div>
-
-                    <!-- Description -->
                     <div>
                         <label class="block text-xs font-semibold text-[#475569] uppercase tracking-wide mb-2">Description <span class="font-normal normal-case text-[#94a3b8]">(optional)</span></label>
                         <textarea name="description" class="form-input" rows="3" placeholder="Short product description…" style="resize:vertical"></textarea>
                     </div>
-
                     <button type="submit" class="btn-primary w-full justify-center">
                         <i data-lucide="plus-circle" class="w-4 h-4"></i>
                         Add to Catalog
@@ -164,14 +194,13 @@
             </div>
         </div>
 
-        <!-- ── Existing Items ── -->
+        <!-- Product grid with drag-and-drop -->
         <div class="lg:col-span-2">
-            <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center justify-between mb-2">
                 <div>
                     <h2 class="font-display text-lg font-bold">Catalog Items</h2>
                     <p class="text-sm text-[#94a3b8]">{{ items|length }} product{% if items|length != 1 %}s{% endif %} total</p>
                 </div>
-                <!-- Filter -->
                 <select id="filter-cat" class="form-input" style="width:auto;min-width:180px">
                     <option value="all">All Categories</option>
                     {% for cat in categories %}
@@ -181,42 +210,87 @@
             </div>
 
             {% if items %}
-            <div class="item-grid" id="item-grid">
-                {% for item in items %}
-                <div class="item-card" data-cat="{{ item.category }}">
-                    <div style="position:relative;">
-                        <img src="{{ url_for('static', filename='uploads/catalog/' ~ item.image_filename) }}"
-                             alt="{{ item.name }}" loading="lazy">
-                        {% set total_imgs = item.extra_image_count %}
-                        {% if total_imgs > 0 %}
-                        <span style="position:absolute;bottom:8px;right:8px;background:rgba(15,23,42,0.65);color:#fff;font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:100px;">
-                            +{{ total_imgs }} more
-                        </span>
-                        {% endif %}
-                    </div>
-                    <div class="info">
-                        <div class="tag mb-2">{{ item.category }}</div>
-                        <div class="name">{{ item.name }}</div>
-                        {% if item.model_no %}<div class="model">Model: {{ item.model_no }}</div>{% endif %}
-                        {% if item.description %}<div class="desc">{{ item.description }}</div>{% endif %}
-                        <div class="text-[0.7rem] text-[#94a3b8] mt-2">Added: {{ item.created_at.strftime('%d %b %Y') if item.created_at else '—' }}</div>
-                    </div>
-                    <div class="actions" style="gap:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
-                        <!-- Add more images -->
-                        <button type="button" onclick="openAddImages({{ item.id }}, '{{ item.name|replace("'","\\'")|e }}')"
-                                style="background:#eff6ff;color:#1e3a8a;border:1px solid #dbeafe;padding:6px 12px;border-radius:6px;font-size:0.74rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;">
-                            <i data-lucide="image-plus" class="w-3 h-3"></i> Add Images
-                        </button>
-                        <form action="/admin/catalog/delete/{{ item.id }}" method="POST"
-                              onsubmit="return confirm('Delete &quot;{{ item.name }}&quot;? This cannot be undone.')">
-                            <button type="submit" class="btn-danger flex items-center gap-1">
-                                <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
-                            </button>
-                        </form>
+
+            <!-- Group by category, each group is independently sortable -->
+            {% set ns = namespace(grouped={}) %}
+            {% for item in items %}
+                {% set _ = ns.grouped.update({item.category: (ns.grouped.get(item.category, []) + [item])}) %}
+            {% endfor %}
+
+            {% for cat in categories %}
+            {% set cat_items = items | selectattr("category", "equalto", cat) | list %}
+            {% if cat_items %}
+            <div class="cat-section" data-cat="{{ cat }}">
+                <div class="cat-section-header">
+                    <h3>{{ cat }}</h3>
+                    <span class="count">{{ cat_items|length }}</span>
+                    <div class="drag-hint">
+                        <i data-lucide="grip-vertical" style="width:13px;height:13px;"></i>
+                        Drag to reorder
                     </div>
                 </div>
-                {% endfor %}
+                <div class="sort-group" data-sortable="true" data-category="{{ cat }}">
+                    {% for item in cat_items %}
+                    {% set img_src = item.image_filename if (item.image_filename and (item.image_filename.startswith('http://') or item.image_filename.startswith('https://'))) else url_for('static', filename='uploads/catalog/' ~ (item.image_filename or '')) %}
+                    <div class="item-card" data-id="{{ item.id }}" data-cat="{{ item.category }}">
+                        <!-- Drag handle -->
+                        <div class="drag-handle">
+                            <span class="grip">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                    <circle cx="5" cy="4" r="1.5"/><circle cx="11" cy="4" r="1.5"/>
+                                    <circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/>
+                                    <circle cx="5" cy="12" r="1.5"/><circle cx="11" cy="12" r="1.5"/>
+                                </svg>
+                            </span>
+                            <span>drag to reorder</span>
+                            <span class="pos-badge">{{ loop.index }}</span>
+                        </div>
+
+                        <!-- Image -->
+                        <div style="position:relative;overflow:hidden;">
+                            {% if item.image_filename %}
+                            <img src="{{ img_src }}" alt="{{ item.name }}" loading="lazy">
+                            {% else %}
+                            <div style="width:100%;height:140px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;">
+                                <i data-lucide="package" style="width:32px;height:32px;color:#cbd5e1;"></i>
+                            </div>
+                            {% endif %}
+                            {% if item.extra_image_count > 0 %}
+                            <span style="position:absolute;bottom:8px;right:8px;background:rgba(15,23,42,0.65);color:#fff;font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:100px;">
+                                +{{ item.extra_image_count }} more
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Info -->
+                        <div class="info">
+                            <div class="tag mb-2">{{ item.category }}</div>
+                            <div class="name">{{ item.name }}</div>
+                            {% if item.model_no %}<div class="model">{{ item.model_no }}</div>{% endif %}
+                            {% if item.description %}<div class="desc">{{ item.description }}</div>{% endif %}
+                            <div style="font-size:0.68rem;color:#94a3b8;margin-top:6px;">Added: {{ item.created_at.strftime('%d %b %Y') if item.created_at else '—' }}</div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="actions">
+                            <button type="button" onclick="openAddImages({{ item.id }}, '{{ item.name|replace("'","\\'")|e }}')"
+                                    style="background:#eff6ff;color:#1e3a8a;border:1px solid #dbeafe;padding:6px 12px;border-radius:6px;font-size:0.74rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;">
+                                <i data-lucide="image-plus" class="w-3 h-3"></i> Add Images
+                            </button>
+                            <form action="/admin/catalog/delete/{{ item.id }}" method="POST"
+                                  onsubmit="return confirm('Delete &quot;{{ item.name }}&quot;?')">
+                                <button type="submit" class="btn-danger flex items-center gap-1">
+                                    <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
+            {% endif %}
+            {% endfor %}
+
             {% else %}
             <div class="bg-white border border-[#e2e8f0] rounded-2xl p-16 text-center">
                 <i data-lucide="image-off" class="w-12 h-12 text-[#cbd5e1] mx-auto mb-4"></i>
@@ -225,9 +299,16 @@
             </div>
             {% endif %}
         </div>
-
     </div>
 </main>
+
+<!-- Floating save banner -->
+<div id="save-banner">
+    <i data-lucide="grip-vertical" style="width:16px;height:16px;color:#94a3b8;"></i>
+    <span>Order changed — save to apply on catalog page</span>
+    <button class="discard-btn" onclick="discardOrder()">Discard</button>
+    <button class="save-btn" onclick="saveOrder()">Save Order</button>
+</div>
 
 <!-- Add Images Modal -->
 <div id="add-img-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(10,22,40,0.6);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
@@ -236,14 +317,14 @@
         <h3 style="font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;margin-bottom:4px;" id="modal-title">Add Images</h3>
         <p style="font-size:0.78rem;color:#94a3b8;margin-bottom:18px;">Select one or more images to add to this product.</p>
         <form id="add-img-form" method="POST" enctype="multipart/form-data">
-            <div style="border:2px dashed #cbd5e1;border-radius:10px;padding:24px;text-align:center;cursor:pointer;position:relative;background:#f8fafc;margin-bottom:14px;" id="modal-drop">
+            <div style="border:2px dashed #cbd5e1;border-radius:10px;padding:24px;text-align:center;cursor:pointer;position:relative;background:#f8fafc;margin-bottom:14px;">
                 <input type="file" name="images" id="modal-file-input" accept="image/*" multiple style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;">
                 <i data-lucide="upload-cloud" style="width:28px;height:28px;color:#94a3b8;margin:0 auto 8px;display:block;"></i>
                 <p style="font-size:0.82rem;font-weight:600;color:#475569;">Click or drag images here</p>
                 <p style="font-size:0.72rem;color:#94a3b8;margin-top:4px;">PNG, JPG, WEBP</p>
             </div>
             <div id="modal-previews" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;"></div>
-            <button type="submit" class="btn-primary w-full justify-center" style="width:100%;">
+            <button type="submit" class="btn-primary" style="width:100%;justify-content:center;">
                 <i data-lucide="upload" class="w-4 h-4"></i> Upload Images
             </button>
         </form>
@@ -251,85 +332,179 @@
 </div>
 
 <script>
-    lucide.createIcons();
+lucide.createIcons();
 
-    // ── Multi-image preview for add product form ──
-    const input = document.getElementById('image-input');
-    const dropZone = document.getElementById('drop-zone');
-    const previewWrap = document.getElementById('preview-wrap');
-    const previewGrid = document.getElementById('preview-grid');
-    const previewName = document.getElementById('preview-name');
+// ── Image preview for add form ──
+var input = document.getElementById('image-input');
+var dropZone = document.getElementById('drop-zone');
+var previewWrap = document.getElementById('preview-wrap');
+var previewGrid = document.getElementById('preview-grid');
+var previewName = document.getElementById('preview-name');
 
-    function showPreviews(files) {
-        previewGrid.innerHTML = '';
-        Array.from(files).forEach(function(file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.style.cssText = 'width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;';
-                previewGrid.appendChild(img);
-            };
-            reader.readAsDataURL(file);
-        });
-        previewName.textContent = files.length + ' image' + (files.length > 1 ? 's' : '') + ' selected';
-        previewWrap.style.display = 'block';
-    }
+function showPreviews(files) {
+    previewGrid.innerHTML = '';
+    Array.from(files).forEach(function(file) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.cssText = 'width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;';
+            previewGrid.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    });
+    previewName.textContent = files.length + ' image' + (files.length > 1 ? 's' : '') + ' selected';
+    previewWrap.style.display = 'block';
+}
+input.addEventListener('change', function() { if (input.files.length) showPreviews(input.files); });
+dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', function() { dropZone.classList.remove('dragover'); });
+dropZone.addEventListener('drop', function(e) {
+    e.preventDefault(); dropZone.classList.remove('dragover');
+    if (e.dataTransfer.files.length) { input.files = e.dataTransfer.files; showPreviews(e.dataTransfer.files); }
+});
 
-    input.addEventListener('change', function() { if (input.files.length) showPreviews(input.files); });
-    dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.classList.add('dragover'); });
-    dropZone.addEventListener('dragleave', function() { dropZone.classList.remove('dragover'); });
-    dropZone.addEventListener('drop', function(e) {
-        e.preventDefault();
-        dropZone.classList.remove('dragover');
-        if (e.dataTransfer.files.length) {
-            input.files = e.dataTransfer.files;
-            showPreviews(e.dataTransfer.files);
+// ── Category filter ──
+document.getElementById('filter-cat').addEventListener('change', function() {
+    var val = this.value;
+    document.querySelectorAll('.cat-section').forEach(function(s) {
+        s.style.display = (val === 'all' || s.dataset.cat === val) ? '' : 'none';
+    });
+});
+
+// ── Drag-and-drop sort ──
+var orderChanged = false;
+var originalOrder = {};  // store original order per category for discard
+
+// Init SortableJS on each category group
+document.querySelectorAll('[data-sortable="true"]').forEach(function(grid) {
+    var cat = grid.dataset.category;
+
+    // Save original order
+    originalOrder[cat] = Array.from(grid.querySelectorAll('.item-card')).map(function(c) { return c.dataset.id; });
+
+    Sortable.create(grid, {
+        animation: 180,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        dragClass: 'sortable-drag',
+        handle: '.drag-handle',
+        onEnd: function() {
+            orderChanged = true;
+            document.getElementById('save-banner').classList.add('visible');
+            updatePositionBadges(grid);
+            lucide.createIcons();
         }
     });
+});
 
-    // ── Category filter ──
-    document.getElementById('filter-cat').addEventListener('change', function() {
-        const val = this.value;
-        document.querySelectorAll('.item-card').forEach(function(card) {
-            card.style.display = (val === 'all' || card.dataset.cat === val) ? '' : 'none';
+function updatePositionBadges(grid) {
+    grid.querySelectorAll('.item-card').forEach(function(card, i) {
+        var badge = card.querySelector('.pos-badge');
+        if (badge) badge.textContent = i + 1;
+    });
+}
+
+function saveOrder() {
+    var btn = document.querySelector('.save-btn');
+    btn.textContent = 'Saving…';
+    btn.disabled = true;
+
+    // Collect all IDs per category in their current visual order
+    var allIds = [];
+    document.querySelectorAll('[data-sortable="true"]').forEach(function(grid) {
+        grid.querySelectorAll('.item-card').forEach(function(card) {
+            allIds.push(parseInt(card.dataset.id));
         });
     });
 
-    // ── Add Images Modal ──
-    function openAddImages(itemId, name) {
-        document.getElementById('modal-title').textContent = 'Add Images — ' + name;
-        document.getElementById('add-img-form').action = '/admin/catalog/' + itemId + '/add-images';
-        document.getElementById('modal-previews').innerHTML = '';
-        document.getElementById('modal-file-input').value = '';
-        const modal = document.getElementById('add-img-modal');
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-        lucide.createIcons();
-    }
-    function closeAddImages() {
-        document.getElementById('add-img-modal').style.display = 'none';
-        document.body.style.overflow = '';
-    }
-    document.getElementById('add-img-modal').addEventListener('click', function(e) {
-        if (e.target === this) closeAddImages();
+    fetch('/admin/catalog/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: allIds })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            orderChanged = false;
+            document.getElementById('save-banner').classList.remove('visible');
+            // Flash a quick green banner
+            showToast('✓ Order saved — catalog updated!', 'success');
+            // Update originalOrder to new order
+            document.querySelectorAll('[data-sortable="true"]').forEach(function(grid) {
+                var cat = grid.dataset.category;
+                originalOrder[cat] = Array.from(grid.querySelectorAll('.item-card')).map(function(c) { return c.dataset.id; });
+            });
+        } else {
+            showToast('Failed to save order.', 'error');
+        }
+        btn.textContent = 'Save Order';
+        btn.disabled = false;
+    })
+    .catch(function() {
+        showToast('Network error — try again.', 'error');
+        btn.textContent = 'Save Order';
+        btn.disabled = false;
     });
+}
 
-    // Modal file preview
-    document.getElementById('modal-file-input').addEventListener('change', function() {
-        const previews = document.getElementById('modal-previews');
-        previews.innerHTML = '';
-        Array.from(this.files).forEach(function(file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.style.cssText = 'width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;';
-                previews.appendChild(img);
-            };
-            reader.readAsDataURL(file);
+function discardOrder() {
+    // Restore original order in DOM
+    document.querySelectorAll('[data-sortable="true"]').forEach(function(grid) {
+        var cat = grid.dataset.category;
+        var ids = originalOrder[cat] || [];
+        ids.forEach(function(id) {
+            var card = grid.querySelector('[data-id="' + id + '"]');
+            if (card) grid.appendChild(card);
         });
+        updatePositionBadges(grid);
     });
+    orderChanged = false;
+    document.getElementById('save-banner').classList.remove('visible');
+    lucide.createIcons();
+}
+
+function showToast(msg, type) {
+    var t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;top:72px;left:50%;transform:translateX(-50%);' +
+        'padding:11px 22px;border-radius:100px;font-size:0.85rem;font-weight:600;z-index:9999;' +
+        'box-shadow:0 8px 24px rgba(0,0,0,0.15);white-space:nowrap;transition:opacity 0.4s;' +
+        (type === 'success' ? 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;' : 'background:#fef2f2;color:#dc2626;border:1px solid #fecaca;');
+    document.body.appendChild(t);
+    setTimeout(function() { t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 400); }, 2800);
+}
+
+// ── Add Images Modal ──
+function openAddImages(itemId, name) {
+    document.getElementById('modal-title').textContent = 'Add Images — ' + name;
+    document.getElementById('add-img-form').action = '/admin/catalog/' + itemId + '/add-images';
+    document.getElementById('modal-previews').innerHTML = '';
+    document.getElementById('modal-file-input').value = '';
+    document.getElementById('add-img-modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    lucide.createIcons();
+}
+function closeAddImages() {
+    document.getElementById('add-img-modal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+document.getElementById('add-img-modal').addEventListener('click', function(e) { if (e.target === this) closeAddImages(); });
+
+document.getElementById('modal-file-input').addEventListener('change', function() {
+    var previews = document.getElementById('modal-previews');
+    previews.innerHTML = '';
+    Array.from(this.files).forEach(function(file) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.cssText = 'width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;';
+            previews.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    });
+});
 </script>
 </body>
 </html>
