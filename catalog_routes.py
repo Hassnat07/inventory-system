@@ -11,6 +11,7 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "gif"}
 CATEGORIES = [
     "Intraocular Lenses",
     "Eye Machines",
+    "Eye Gel",
 ]
 
 
@@ -72,7 +73,7 @@ def catalog():
         })
 
     cat_filter = request.args.get("cat", "").strip()
-    CAT_MAP = {"iols": "Intraocular Lenses", "eye-machines": "Eye Machines"}
+    CAT_MAP = {"iols": "Intraocular Lenses", "eye-machines": "Eye Machines", "eye-gel": "Eye Gel"}
     active_cat = CAT_MAP.get(cat_filter, "")
 
     return render_template("catalog.html", grouped=grouped, categories=CATEGORIES, active_cat=active_cat)
