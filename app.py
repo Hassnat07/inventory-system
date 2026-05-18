@@ -215,7 +215,7 @@ def drap():
 @app.route("/contact", methods=["GET", "POST"])
 def contact():
     if request.method == "POST":
-        import smtplib, os
+        import smtplib, os, threading
         from email.mime.text import MIMEText
         from email.mime.multipart import MIMEMultipart
 
@@ -227,11 +227,11 @@ def contact():
         message      = request.form.get("message", "").strip()
 
         RECIPIENT  = "hassnat7141@gmail.com"
-        SMTP_HOST  = "smtp-relay.brevo.com"
+        SMTP_HOST  = "smtp.gmail.com"
         SMTP_PORT  = 587
         SMTP_USER  = os.getenv("SMTP_USER", "")
         SMTP_PASS  = os.getenv("SMTP_PASS", "")
-        FROM_EMAIL = "info@ramayelectromedix.com"
+        FROM_EMAIL = SMTP_USER  # Gmail requires From = authenticated user
 
         subject = f"[Ramay Electromedix] {requirement} — {first_name} {last_name}"
         body = f"""New contact form submission from ramayelectromedix.com
@@ -244,23 +244,32 @@ Requirement:  {requirement}
 Message:
 {message}
 """
-        try:
-            msg = MIMEMultipart()
-            msg["From"]     = f"Ramay Electromedix <{FROM_EMAIL}>"
-            msg["To"]       = RECIPIENT
-            msg["Subject"]  = subject
-            msg["Reply-To"] = sender_email
-            msg.attach(MIMEText(body, "plain"))
+        def send_email():
+            try:
+                msg = MIMEMultipart()
+                msg["From"]     = f"Ramay Electromedix <{FROM_EMAIL}>"
+                msg["To"]       = RECIPIENT
+                msg["Subject"]  = subject
+                msg["Reply-To"] = sender_email
+                msg.attach(MIMEText(body, "plain"))
 
-            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-                server.starttls()
-                server.login(SMTP_USER, SMTP_PASS)
-                server.sendmail(FROM_EMAIL, RECIPIENT, msg.as_string())
+                with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as server:
+                    server.ehlo()
+                    server.starttls()
+                    server.ehlo()
+                    server.login(SMTP_USER, SMTP_PASS)
+                    server.sendmail(FROM_EMAIL, RECIPIENT, msg.as_string())
+                logging.info("Contact form email sent successfully")
+            except Exception as e:
+                logging.error(f"Contact form email error: {e}")
 
-            return render_template("support/contact.html", success=True)
-        except Exception as e:
-            logging.error(f"Contact form email error: {e}")
-            return render_template("support/contact.html", error=True, error_detail=str(e))
+        # Send in background thread — page responds immediately
+        t = threading.Thread(target=send_email)
+        t.daemon = True
+        t.start()
+
+        # Always show success immediately (email sends in background)
+        return render_template("support/contact.html", success=True)
 
     return render_template("support/contact.html")
 
