@@ -215,60 +215,54 @@ def drap():
 @app.route("/contact", methods=["GET", "POST"])
 def contact():
     if request.method == "POST":
-        import smtplib, os, threading
-        from email.mime.text import MIMEText
-        from email.mime.multipart import MIMEMultipart
+        import os, urllib.request, urllib.error, json
 
         first_name   = request.form.get("first_name", "").strip()
         last_name    = request.form.get("last_name", "").strip()
         sender_email = request.form.get("email", "").strip()
         organisation = request.form.get("organisation", "").strip()
         requirement  = request.form.get("requirement", "").strip()
-        message      = request.form.get("message", "").strip()
+        message_text = request.form.get("message", "").strip()
 
-        RECIPIENT  = "hassnat7141@gmail.com"
-        SMTP_HOST  = "smtp.gmail.com"
-        SMTP_PORT  = 587
-        SMTP_USER  = os.getenv("SMTP_USER", "")
-        SMTP_PASS  = os.getenv("SMTP_PASS", "")
-        FROM_EMAIL = SMTP_USER  # Gmail requires From = authenticated user
+        RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
 
         subject = f"[Ramay Electromedix] {requirement} — {first_name} {last_name}"
-        body = f"""New contact form submission from ramayelectromedix.com
+        html_body = f"""
+        <h2 style="color:#1e3a8a;">New Contact Form Submission</h2>
+        <table style="border-collapse:collapse;width:100%;font-family:Arial,sans-serif;font-size:14px;">
+            <tr><td style="padding:8px;font-weight:bold;color:#475569;width:140px;">Name</td><td style="padding:8px;">{first_name} {last_name}</td></tr>
+            <tr style="background:#f8fafc;"><td style="padding:8px;font-weight:bold;color:#475569;">Email</td><td style="padding:8px;"><a href="mailto:{sender_email}">{sender_email}</a></td></tr>
+            <tr><td style="padding:8px;font-weight:bold;color:#475569;">Organisation</td><td style="padding:8px;">{organisation}</td></tr>
+            <tr style="background:#f8fafc;"><td style="padding:8px;font-weight:bold;color:#475569;">Requirement</td><td style="padding:8px;">{requirement}</td></tr>
+            <tr><td style="padding:8px;font-weight:bold;color:#475569;vertical-align:top;">Message</td><td style="padding:8px;">{message_text.replace(chr(10), "<br>")}</td></tr>
+        </table>
+        <p style="color:#94a3b8;font-size:12px;margin-top:20px;">Sent from ramayelectromedix.com contact form</p>
+        """
 
-Name:         {first_name} {last_name}
-Email:        {sender_email}
-Organisation: {organisation}
-Requirement:  {requirement}
+        try:
+            payload = json.dumps({
+                "from": "Ramay Electromedix <onboarding@resend.dev>",
+                "to": ["hassnat7141@gmail.com"],
+                "reply_to": sender_email,
+                "subject": subject,
+                "html": html_body,
+            }).encode("utf-8")
 
-Message:
-{message}
-"""
-        def send_email():
-            try:
-                msg = MIMEMultipart()
-                msg["From"]     = f"Ramay Electromedix <{FROM_EMAIL}>"
-                msg["To"]       = RECIPIENT
-                msg["Subject"]  = subject
-                msg["Reply-To"] = sender_email
-                msg.attach(MIMEText(body, "plain"))
+            req = urllib.request.Request(
+                "https://api.resend.com/emails",
+                data=payload,
+                headers={
+                    "Authorization": f"Bearer {RESEND_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                method="POST"
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                logging.info(f"Contact email sent via Resend: {resp.status}")
 
-                with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as server:
-                    server.ehlo()
-                    server.starttls()
-                    server.ehlo()
-                    server.login(SMTP_USER, SMTP_PASS)
-                    server.sendmail(FROM_EMAIL, RECIPIENT, msg.as_string())
-                logging.info("Contact form email sent successfully")
-            except Exception as e:
-                logging.error(f"Contact form email error: {e}")
+        except Exception as e:
+            logging.error(f"Contact form Resend error: {e}")
 
-        # Send in background thread — page responds immediately
-        t = threading.Thread(target=send_email)
-        t.daemon = True
-        t.start()
-
-        # Always show success immediately (email sends in background)
         return render_template("support/contact.html", success=True)
 
     return render_template("support/contact.html")
