@@ -21,7 +21,7 @@
             {% for conf in conferences %}
             {% set yr = conf.year %}
             {% set count = photo_counts.get(yr, 0) %}
-            {% set is_upcoming = yr >= 2026 %}
+            {% set is_upcoming = conf.upcoming | default(false) %}
 
             <div class="card relative overflow-hidden reveal">
                 <div class="absolute top-0 left-0 w-1 h-full rounded-l-2xl"
