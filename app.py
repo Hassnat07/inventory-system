@@ -241,7 +241,7 @@ def contact():
 
         try:
             payload = json.dumps({
-                "from": "Ramay Electromedix <onboarding@resend.dev>",
+                "from": "Ramay Electromedix <info@ramayelectromedix.com>",
                 "to": ["hassnat7141@gmail.com"],
                 "reply_to": sender_email,
                 "subject": subject,
