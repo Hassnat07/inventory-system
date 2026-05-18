@@ -258,7 +258,7 @@ Message:
             return render_template("support/contact.html", success=True)
         except Exception as e:
             logging.error(f"Contact form email error: {e}")
-            return render_template("support/contact.html", error=True)
+            return render_template("support/contact.html", error=True, error_detail=str(e))
 
     return render_template("support/contact.html")
 
