@@ -140,18 +140,28 @@ CONFERENCE_LIST = [
         "title": "Stallin Conference 2024",
         "location": "Lahore, Punjab",
         "description": "Ramay Electromedix participated as a major exhibitor at the 2024 edition of the Stallin Conference in Lahore, presenting our full portfolio of premium IOLs, Japanese diagnostic machines, and ophthalmic surgical instruments to attendees from across the country.",
+        "upcoming": False,
     },
     {
         "year": 2025,
         "title": "Stallin Conference 2025",
         "location": "Lahore, Punjab",
         "description": "Building on the momentum of the previous year, our team returned to Lahore for the 2025 Stallin Conference. We showcased expanded product lines and strengthened partnerships with eye hospitals and clinics across Pakistan.",
+        "upcoming": False,
     },
     {
         "year": 2026,
         "title": "Stallin Conference 2026",
         "location": "Peshawar, KPK",
-        "description": "The 2026 edition of the Stallin Conference moves to Peshawar, bringing the event to Khyber Pakhtunkhwa for the first time. Ramay Electromedix will be participating as a major exhibitor, further extending our reach into KPK's growing ophthalmic sector.",
+        "description": "The 2026 edition of the Stallin Conference moves to Peshawar, bringing the event to Khyber Pakhtunkhwa for the first time. Ramay Electromedix participated as a major exhibitor, further extending our reach into KPK's growing ophthalmic sector.",
+        "upcoming": False,
+    },
+    {
+        "year": 20261,
+        "title": "Islamabad Eye Congress 2026",
+        "location": "Islamabad, Federal Capital",
+        "description": "Ramay Electromedix will be exhibiting at the upcoming Islamabad Eye Congress 2026, showcasing our latest IOL portfolio and Japanese ophthalmic equipment to surgeons and specialists from across the country.",
+        "upcoming": True,
     },
 ]
 
@@ -202,8 +212,52 @@ def drap():
     return render_template("legal/drap.html")
 
 # ── Support pages ──────────────────────────────────────────────
-@app.route("/contact")
+@app.route("/contact", methods=["GET", "POST"])
 def contact():
+    if request.method == "POST":
+        import smtplib, os
+        from email.mime.text import MIMEText
+        from email.mime.multipart import MIMEMultipart
+
+        first_name   = request.form.get("first_name", "").strip()
+        last_name    = request.form.get("last_name", "").strip()
+        sender_email = request.form.get("email", "").strip()
+        organisation = request.form.get("organisation", "").strip()
+        requirement  = request.form.get("requirement", "").strip()
+        message      = request.form.get("message", "").strip()
+
+        RECIPIENT   = "hassnat7141@gmail.com"
+        GMAIL_USER  = os.getenv("GMAIL_USER", "")
+        GMAIL_PASS  = os.getenv("GMAIL_PASS", "")
+
+        subject = f"[Ramay Electromedix] {requirement} — {first_name} {last_name}"
+        body = f"""New contact form submission from ramayelectromedix.com
+
+Name:         {first_name} {last_name}
+Email:        {sender_email}
+Organisation: {organisation}
+Requirement:  {requirement}
+
+Message:
+{message}
+"""
+        try:
+            msg = MIMEMultipart()
+            msg["From"]    = GMAIL_USER
+            msg["To"]      = RECIPIENT
+            msg["Subject"] = subject
+            msg["Reply-To"] = sender_email
+            msg.attach(MIMEText(body, "plain"))
+
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+                server.login(GMAIL_USER, GMAIL_PASS)
+                server.sendmail(GMAIL_USER, RECIPIENT, msg.as_string())
+
+            return render_template("support/contact.html", success=True)
+        except Exception as e:
+            logging.error(f"Contact form email error: {e}")
+            return render_template("support/contact.html", error=True)
+
     return render_template("support/contact.html")
 
 @app.route("/docs")
