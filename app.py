@@ -227,10 +227,11 @@ def contact():
         message      = request.form.get("message", "").strip()
 
         RECIPIENT  = "hassnat7141@gmail.com"
-        SMTP_HOST  = "mail.ramayelectromedix.com"
-        SMTP_PORT  = 465
-        SMTP_USER  = os.getenv("SMTP_USER", "info@ramayelectromedix.com")
+        SMTP_HOST  = "smtp-relay.brevo.com"
+        SMTP_PORT  = 587
+        SMTP_USER  = os.getenv("SMTP_USER", "")
         SMTP_PASS  = os.getenv("SMTP_PASS", "")
+        FROM_EMAIL = "info@ramayelectromedix.com"
 
         subject = f"[Ramay Electromedix] {requirement} — {first_name} {last_name}"
         body = f"""New contact form submission from ramayelectromedix.com
@@ -245,15 +246,16 @@ Message:
 """
         try:
             msg = MIMEMultipart()
-            msg["From"]     = SMTP_USER
+            msg["From"]     = f"Ramay Electromedix <{FROM_EMAIL}>"
             msg["To"]       = RECIPIENT
             msg["Subject"]  = subject
             msg["Reply-To"] = sender_email
             msg.attach(MIMEText(body, "plain"))
 
-            with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+                server.starttls()
                 server.login(SMTP_USER, SMTP_PASS)
-                server.sendmail(SMTP_USER, RECIPIENT, msg.as_string())
+                server.sendmail(FROM_EMAIL, RECIPIENT, msg.as_string())
 
             return render_template("support/contact.html", success=True)
         except Exception as e:
