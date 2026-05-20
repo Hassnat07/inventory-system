@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+{% block title %}Company Profile | Ramay Electromedix{% endblock %}
+{% block meta_desc %}Ramay Electromedix — Pakistan's premier authorized distributor of ophthalmic products since 1996. 28+ years, 100+ hospital clients, 4 provinces covered.{% endblock %}
+
+{% block breadcrumb %}<span>/</span><a href="/profile" target="_self" class="current">Company Profile</a>{% endblock %}
+{% block section_label %}Distribution Profile{% endblock %}
+{% block page_title %}Ramay Electromedix{% endblock %}
+{% block page_subtitle %}Pakistan's premier authorized distributor of ophthalmic products — established 1996. A trusted partner for global manufacturers entering the Pakistani market.{% endblock %}
+
+{% block extra_styles %}
+<style>
+.profile-stat {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 28px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s, box-shadow 0.25s;
+}
+.profile-stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #1e3a8a);
+}
+.profile-stat:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(15,23,42,0.08); }
+.profile-stat .number {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 2.5rem; font-weight: 800;
+    color: #1e3a8a; line-height: 1; margin-bottom: 6px;
+}
+.profile-stat .label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #94a3b8; }
+
+.credential-badge {
+    display: flex; align-items: center; gap: 12px;
+    background: #fff; border: 1px solid #e2e8f0;
+    border-radius: 12px; padding: 16px 20px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.credential-badge:hover { border-color: #3b82f6; box-shadow: 0 4px 16px rgba(59,130,246,0.1); }
+.credential-badge .icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg,#eff6ff,#dbeafe); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.credential-badge .icon i { color: #1e3a8a; }
+.credential-badge .title { font-weight: 700; font-size: 0.88rem; color: #0f172a; line-height: 1.3; }
+.credential-badge .sub { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+
+.province-dot { width: 10px; height: 10px; border-radius: 50%; background: #3b82f6; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
+
+.timeline-item { display: flex; gap: 16px; padding-bottom: 28px; position: relative; }
+.timeline-item::before { content: ''; position: absolute; left: 15px; top: 32px; bottom: 0; width: 2px; background: #e2e8f0; }
+.timeline-item:last-child::before { display: none; }
+.timeline-dot { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg,#3b82f6,#1e3a8a); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.timeline-dot i { color: #fff; width: 14px; height: 14px; }
+.timeline-year { font-size: 0.72rem; font-weight: 800; color: #3b82f6; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
+.timeline-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px; }
+.timeline-desc { font-size: 0.82rem; color: #64748b; line-height: 1.6; }
+
+.why-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; transition: all 0.25s; }
+.why-card:hover { border-color: #3b82f6; box-shadow: 0 8px 24px rgba(59,130,246,0.08); transform: translateY(-2px); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Key Stats ── -->
+<section class="py-16 bg-white">
+<div class="max-w-7xl mx-auto px-6 lg:px-8">
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-5 mb-16 reveal">
+        <div class="profile-stat">
+            <div class="number">28+</div>
+            <div class="label">Years Operating</div>
+        </div>
+        <div class="profile-stat">
+            <div class="number">100+</div>
+            <div class="label">Hospital Clients</div>
+        </div>
+        <div class="profile-stat">
+            <div class="number">50k+</div>
+            <div class="label">IOLs Delivered</div>
+        </div>
+        <div class="profile-stat">
+            <div class="number">4</div>
+            <div class="label">Provinces Covered</div>
+        </div>
+    </div>
+
+    <!-- ── Company Overview ── -->
+    <div class="grid lg:grid-cols-2 gap-16 items-start mb-20 reveal">
+        <div>
+            <div class="section-label">Company Overview</div>
+            <h2 class="font-display text-3xl font-bold mb-5 text-[#0f172a]">Who We Are</h2>
+            <p class="text-[#475569] leading-relaxed mb-4">Ramay Electromedix is Pakistan's most established authorized distributor of ophthalmic products, founded in 1996 in Lahore. Over 28 years, we have built an unmatched distribution network covering hospitals, eye clinics, and surgical centres across all four provinces.</p>
+            <p class="text-[#475569] leading-relaxed mb-4">We specialize in importing, registering, and distributing premium intraocular lenses, ophthalmic surgical instruments, Japanese diagnostic equipment, and ophthalmic consumables — handling every aspect of the supply chain from DRAP registration through to post-sales technical support.</p>
+            <p class="text-[#475569] leading-relaxed mb-6">Our client base includes government teaching hospitals, private eye hospitals, and specialist clinics. We are the preferred supply partner for some of Pakistan's most respected ophthalmic surgeons.</p>
+
+            <div class="flex flex-wrap gap-3">
+                <span class="tag">DRAP Registered</span>
+                <span class="tag">ISO Compliant</span>
+                <span class="tag">Authorized Distributor</span>
+                <span class="tag">28 Years Experience</span>
+                <span class="tag">Nationwide Coverage</span>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <!-- Credentials -->
+            <div class="credential-badge">
+                <div class="icon"><i data-lucide="shield-check" class="w-5 h-5"></i></div>
+                <div>
+                    <div class="title">DRAP Registered Distributor</div>
+                    <div class="sub">Drug Regulatory Authority of Pakistan — all products fully licensed for import and sale</div>
+                </div>
+            </div>
+            <div class="credential-badge">
+                <div class="icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+                <div>
+                    <div class="title">Registered Business Entity</div>
+                    <div class="sub">Incorporated and operating in Lahore, Punjab since 1996 — 28+ years of continuous trading</div>
+                </div>
+            </div>
+            <div class="credential-badge">
+                <div class="icon"><i data-lucide="handshake" class="w-5 h-5"></i></div>
+                <div>
+                    <div class="title">Authorized Partnership Agreements</div>
+                    <div class="sub">Formal distribution agreements with Eyeol UK, Credentia, Rohoto Japan, and others</div>
+                </div>
+            </div>
+            <div class="credential-badge">
+                <div class="icon"><i data-lucide="users" class="w-5 h-5"></i></div>
+                <div>
+                    <div class="title">Dedicated Technical Team</div>
+                    <div class="sub">Biomedical engineers and clinical support staff for installation, training, and after-sales service</div>
+                </div>
+            </div>
+            <div class="credential-badge">
+                <div class="icon"><i data-lucide="truck" class="w-5 h-5"></i></div>
+                <div>
+                    <div class="title">Cold-Chain Logistics Network</div>
+                    <div class="sub">Temperature-controlled storage and distribution for sensitive ophthalmic products nationwide</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Geographic Coverage ── -->
+    <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-8 md:p-10 mb-16 reveal">
+        <div class="section-label">Geographic Reach</div>
+        <h2 class="font-display text-2xl font-bold mb-8 text-[#0f172a]">Nationwide Distribution Network</h2>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div>
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="province-dot"></div>
+                    <span class="font-display font-bold text-[#0f172a]">Punjab</span>
+                </div>
+                <p class="text-sm text-[#475569] leading-relaxed">Lahore, Faisalabad, Rawalpindi, Multan, Gujranwala — our primary and largest market with 60+ hospital clients.</p>
+            </div>
+            <div>
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="province-dot"></div>
+                    <span class="font-display font-bold text-[#0f172a]">Sindh</span>
+                </div>
+                <p class="text-sm text-[#475569] leading-relaxed">Karachi and Hyderabad — serving major private eye hospitals and government teaching institutions.</p>
+            </div>
+            <div>
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="province-dot"></div>
+                    <span class="font-display font-bold text-[#0f172a]">KPK</span>
+                </div>
+                <p class="text-sm text-[#475569] leading-relaxed">Peshawar and surrounding areas — a growing market with established hospital relationships.</p>
+            </div>
+            <div>
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="province-dot"></div>
+                    <span class="font-display font-bold text-[#0f172a]">Islamabad</span>
+                </div>
+                <p class="text-sm text-[#475569] leading-relaxed">Federal Capital Territory — supplying specialist clinics and government medical institutions.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Why Partner With Us + Timeline ── -->
+    <div class="grid lg:grid-cols-2 gap-16 mb-16">
+
+        <!-- Why Partner -->
+        <div class="reveal">
+            <div class="section-label">For Manufacturers</div>
+            <h2 class="font-display text-2xl font-bold mb-6 text-[#0f172a]">Why Choose Ramay Electromedix</h2>
+            <div class="space-y-4">
+                <div class="why-card">
+                    <div class="flex items-start gap-3">
+                        <div class="icon-box flex-shrink-0" style="margin-bottom:0;width:40px;height:40px;">
+                            <i data-lucide="file-check" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="font-display font-bold text-[#0f172a] mb-1">Full DRAP Registration Support</div>
+                            <p class="text-sm text-[#475569] leading-relaxed">We manage the entire DRAP registration process — documentation, liaison, and ongoing compliance — so your products can legally enter and be sold in Pakistan.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="why-card">
+                    <div class="flex items-start gap-3">
+                        <div class="icon-box flex-shrink-0" style="margin-bottom:0;width:40px;height:40px;">
+                            <i data-lucide="network" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="font-display font-bold text-[#0f172a] mb-1">Established Hospital Network</div>
+                            <p class="text-sm text-[#475569] leading-relaxed">Direct relationships with 100+ hospitals and eye clinics means your products reach the right hands immediately — no cold-start market entry required.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="why-card">
+                    <div class="flex items-start gap-3">
+                        <div class="icon-box flex-shrink-0" style="margin-bottom:0;width:40px;height:40px;">
+                            <i data-lucide="wrench" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="font-display font-bold text-[#0f172a] mb-1">After-Sales Technical Service</div>
+                            <p class="text-sm text-[#475569] leading-relaxed">Our biomedical engineers handle installation, training, calibration, and warranty service — protecting your brand reputation in the market.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="why-card">
+                    <div class="flex items-start gap-3">
+                        <div class="icon-box flex-shrink-0" style="margin-bottom:0;width:40px;height:40px;">
+                            <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="font-display font-bold text-[#0f172a] mb-1">Market Intelligence</div>
+                            <p class="text-sm text-[#475569] leading-relaxed">28 years of market data, surgeon preferences, and procurement patterns — giving you a real picture of your potential in Pakistan's ophthalmic sector.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="reveal">
+            <div class="section-label">Our Track Record</div>
+            <h2 class="font-display text-2xl font-bold mb-6 text-[#0f172a]">28 Years of Growth</h2>
+            <div class="space-y-0">
+                <div class="timeline-item">
+                    <div class="timeline-dot"><i data-lucide="flag" class="w-3.5 h-3.5" style="color:#fff;"></i></div>
+                    <div>
+                        <div class="timeline-year">1996</div>
+                        <div class="timeline-title">Founded in Lahore</div>
+                        <div class="timeline-desc">Established as a specialist ophthalmic distributor with initial focus on intraocular lenses for the Punjab market.</div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"><i data-lucide="map" class="w-3.5 h-3.5" style="color:#fff;"></i></div>
+                    <div>
+                        <div class="timeline-year">2005</div>
+                        <div class="timeline-title">Nationwide Expansion</div>
+                        <div class="timeline-desc">Extended distribution network to Sindh and KPK, establishing partnerships with major teaching hospitals across Pakistan.</div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"><i data-lucide="globe" class="w-3.5 h-3.5" style="color:#fff;"></i></div>
+                    <div>
+                        <div class="timeline-year">2012</div>
+                        <div class="timeline-title">International Partnerships</div>
+                        <div class="timeline-desc">Secured authorized distributor agreements with Eyeol UK and Rohoto Japan, bringing premium international products to Pakistan.</div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"><i data-lucide="cpu" class="w-3.5 h-3.5" style="color:#fff;"></i></div>
+                    <div>
+                        <div class="timeline-year">2018</div>
+                        <div class="timeline-title">Diagnostic Equipment Division</div>
+                        <div class="timeline-desc">Launched Japanese ophthalmic diagnostic machine distribution, adding biomedical engineering support team for installation and servicing.</div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"><i data-lucide="trending-up" class="w-3.5 h-3.5" style="color:#fff;"></i></div>
+                    <div>
+                        <div class="timeline-year">2024</div>
+                        <div class="timeline-title">100+ Hospital Milestone</div>
+                        <div class="timeline-desc">Surpassed 100 active hospital clients and 50,000 IOLs delivered — confirming Ramay Electromedix as Pakistan's leading ophthalmic distributor.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Product Portfolio ── -->
+    <div class="mb-16 reveal">
+        <div class="section-label">Product Portfolio</div>
+        <h2 class="font-display text-2xl font-bold mb-6 text-[#0f172a]">What We Distribute</h2>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div class="card text-center">
+                <div class="icon-box mx-auto"><i data-lucide="eye" class="w-5 h-5"></i></div>
+                <h3 class="font-display font-bold text-[#0f172a] mb-2">Intraocular Lenses</h3>
+                <p class="text-sm text-[#475569] leading-relaxed">Monofocal, toric, multifocal, and preloaded IOL systems from Eyeol UK, Credentia, and Rohoto Japan.</p>
+            </div>
+            <div class="card text-center">
+                <div class="icon-box mx-auto"><i data-lucide="stethoscope" class="w-5 h-5"></i></div>
+                <h3 class="font-display font-bold text-[#0f172a] mb-2">Surgical Instruments</h3>
+                <p class="text-sm text-[#475569] leading-relaxed">Phacoemulsification sets, irrigation-aspiration systems, micro-surgical instruments for cataract and vitreoretinal surgery.</p>
+            </div>
+            <div class="card text-center">
+                <div class="icon-box mx-auto"><i data-lucide="monitor" class="w-5 h-5"></i></div>
+                <h3 class="font-display font-bold text-[#0f172a] mb-2">Diagnostic Machines</h3>
+                <p class="text-sm text-[#475569] leading-relaxed">Japanese-manufactured slit lamps, auto-refractors, tonometers, fundus cameras, and biometers.</p>
+            </div>
+            <div class="card text-center">
+                <div class="icon-box mx-auto"><i data-lucide="droplets" class="w-5 h-5"></i></div>
+                <h3 class="font-display font-bold text-[#0f172a] mb-2">Consumables & Gels</h3>
+                <p class="text-sm text-[#475569] leading-relaxed">Ophthalmic viscoelastics, irrigating solutions, BSS, OVDs, ophthalmic gels, and surgical consumables.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── CTA ── -->
+    <div class="bg-gradient-to-r from-[#1e3a8a] to-[#3b82f6] rounded-2xl p-8 md:p-12 reveal">
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h2 class="font-display text-2xl md:text-3xl font-bold text-white mb-3">Interested in a Distribution Partnership?</h2>
+                <p class="text-blue-200 leading-relaxed">If you represent an ophthalmic manufacturer looking for a trusted, established distributor in Pakistan, we would welcome the conversation. Our team is ready to discuss your product range, market potential, and how we can work together.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-4 md:justify-end">
+                <a href="/contact" target="_self" class="btn-primary" style="background:#fff;color:#1e3a8a;justify-content:center;">
+                    <i data-lucide="mail" class="w-4 h-4"></i> Contact Us
+                </a>
+                <a href="/catalog" target="_self" class="btn-primary" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);justify-content:center;">
+                    <i data-lucide="layout-grid" class="w-4 h-4"></i> View Catalog
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+</section>
+{% endblock %}
