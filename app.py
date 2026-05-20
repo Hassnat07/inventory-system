@@ -212,6 +212,10 @@ def drap():
     return render_template("legal/drap.html")
 
 # ── Support pages ──────────────────────────────────────────────
+@app.route("/profile")
+def profile():
+    return render_template("company/profile.html")
+
 @app.route("/contact", methods=["GET", "POST"])
 def contact():
     if request.method == "POST":
