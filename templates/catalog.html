@@ -151,6 +151,24 @@
 }
 .pcard:hover .pcard-cta { box-shadow: 0 6px 18px rgba(30,58,138,0.35); }
 
+/* ── Sold state ── */
+.pcard.is-sold .pcard-img img { filter: grayscale(1); opacity: 0.6; }
+.pcard.is-sold .pcard-name { color: #64748b; }
+.sold-ribbon {
+    position: absolute; top: 20px; left: -40px; z-index: 2;
+    width: 150px; transform: rotate(-45deg);
+    background: #dc2626; color: #fff; text-align: center;
+    font-size: 0.72rem; font-weight: 800; letter-spacing: 0.2em;
+    padding: 5px 0;
+    box-shadow: 0 3px 10px rgba(220,38,38,0.35);
+    pointer-events: none;
+}
+.pcard-cta.sold {
+    background: #f1f5f9; color: #64748b;
+    border: 1px solid #e2e8f0;
+}
+.pcard.is-sold:hover .pcard-cta { box-shadow: none; }
+
 /* Mobile: tighter body */
 @media (max-width: 720px) {
     .pcard-body { padding: 10px 12px 14px; }
@@ -158,6 +176,7 @@
     .pcard-desc { display: none; }
     .pcard-cta { padding: 8px 0; font-size: 0.7rem; }
     .pcard-img { padding: 14px; }
+    .sold-ribbon { top: 14px; left: -44px; font-size: 0.62rem; }
 }
 
 /* ── Empty ── */
@@ -187,7 +206,7 @@
 
 <!-- Category sections -->
 {% for cat in categories %}{% if cat in grouped %}
-{% set anchor = 'iols' if cat == 'Intraocular Lenses' else 'eye-machines' %}
+{% set anchor = {'Intraocular Lenses': 'iols', 'Eye Machines': 'eye-machines', 'Eye Gel': 'eye-gel'}.get(cat, 'eye-machines') %}
 <div class="cat-section" id="{{ anchor }}" data-section="{{ cat }}"
      {% if active_cat and active_cat != cat %}style="display:none"{% endif %}>
 
@@ -199,8 +218,9 @@
     <div class="prod-grid">
         {% for item in grouped[cat] %}
         {% set img_src = item.image_filename if (item.image_filename and (item.image_filename.startswith('http://') or item.image_filename.startswith('https://'))) else url_for('static', filename='uploads/catalog/' ~ (item.image_filename or '')) %}
-        <a class="pcard" href="/catalog/{{ item.id }}" target="_self">
+        <a class="pcard{% if item.is_sold %} is-sold{% endif %}" href="/catalog/{{ item.id }}" target="_self">
             <div class="pcard-img">
+                {% if item.is_sold %}<div class="sold-ribbon">SOLD</div>{% endif %}
                 {% if item.image_filename %}
                 <img src="{{ img_src }}" alt="{{ item.name }}" loading="lazy">
                 {% else %}
@@ -220,10 +240,17 @@
                 <div class="pcard-name">{{ item.name }}</div>
                 {% if item.model_no %}<div class="pcard-model">{{ item.model_no }}</div>{% endif %}
                 {% if item.description %}<div class="pcard-desc">{{ item.description }}</div>{% endif %}
+                {% if item.is_sold %}
+                <div class="pcard-cta sold">
+                    <i data-lucide="check-circle" style="width:13px;height:13px;"></i>
+                    Sold
+                </div>
+                {% else %}
                 <div class="pcard-cta">
                     <i data-lucide="arrow-right" style="width:13px;height:13px;"></i>
                     View Details
                 </div>
+                {% endif %}
             </div>
         </a>
         {% endfor %}
@@ -255,7 +282,10 @@ document.querySelectorAll('.filter-btn').forEach(function(btn) {
         // update URL without reload
         var url = new URL(window.location);
         if (cat === 'all') { url.searchParams.delete('cat'); }
-        else { url.searchParams.set('cat', cat === 'Intraocular Lenses' ? 'iols' : 'eye-machines'); }
+        else {
+            var slugs = { 'Intraocular Lenses': 'iols', 'Eye Machines': 'eye-machines', 'Eye Gel': 'eye-gel' };
+            url.searchParams.set('cat', slugs[cat] || 'eye-machines');
+        }
         history.replaceState({}, '', url);
     });
 });
