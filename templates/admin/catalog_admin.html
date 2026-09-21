@@ -37,6 +37,28 @@
             position:relative;
         }
         .item-card:hover { box-shadow:0 8px 24px rgba(15,23,42,0.08); }
+        .item-card { scroll-margin-top:76px; }
+
+        /* ── Sold state ── */
+        .item-card.is-sold img { filter:grayscale(1); opacity:0.55; }
+        .item-card.is-sold .info .name { color:#64748b; }
+        .sold-badge {
+            position:absolute; top:8px; left:8px;
+            background:#dc2626; color:#fff;
+            font-size:0.66rem; font-weight:800; letter-spacing:0.08em;
+            padding:3px 9px; border-radius:6px;
+            box-shadow:0 2px 8px rgba(220,38,38,0.35);
+        }
+        .btn-sold-toggle {
+            width:100%; justify-content:center;
+            padding:7px 12px; border-radius:6px;
+            font-size:0.76rem; font-weight:700; cursor:pointer;
+            display:flex; align-items:center; gap:6px; transition:all 0.2s;
+        }
+        .btn-sold-toggle.mark-sold { background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; }
+        .btn-sold-toggle.mark-sold:hover { background:#15803d; color:#fff; }
+        .btn-sold-toggle.mark-available { background:#f8fafc; color:#475569; border:1px solid #e2e8f0; }
+        .btn-sold-toggle.mark-available:hover { background:#475569; color:#fff; }
 
         /* drag handle bar at top */
         .drag-handle {
@@ -232,7 +254,7 @@
                 <div class="sort-group" data-sortable="true" data-category="{{ cat }}">
                     {% for item in cat_items %}
                     {% set img_src = item.image_filename if (item.image_filename and (item.image_filename.startswith('http://') or item.image_filename.startswith('https://'))) else url_for('static', filename='uploads/catalog/' ~ (item.image_filename or '')) %}
-                    <div class="item-card" data-id="{{ item.id }}" data-cat="{{ item.category }}">
+                    <div class="item-card{% if item.is_sold %} is-sold{% endif %}" id="item-{{ item.id }}" data-id="{{ item.id }}" data-cat="{{ item.category }}">
                         <!-- Drag handle -->
                         <div class="drag-handle">
                             <span class="grip">
@@ -255,6 +277,9 @@
                                 <i data-lucide="package" style="width:32px;height:32px;color:#cbd5e1;"></i>
                             </div>
                             {% endif %}
+                            {% if item.is_sold %}
+                            <span class="sold-badge">SOLD</span>
+                            {% endif %}
                             {% if item.extra_image_count > 0 %}
                             <span style="position:absolute;bottom:8px;right:8px;background:rgba(15,23,42,0.65);color:#fff;font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:100px;">
                                 +{{ item.extra_image_count }} more
@@ -269,10 +294,24 @@
                             {% if item.model_no %}<div class="model">{{ item.model_no }}</div>{% endif %}
                             {% if item.description %}<div class="desc">{{ item.description }}</div>{% endif %}
                             <div style="font-size:0.68rem;color:#94a3b8;margin-top:6px;">Added: {{ item.created_at.strftime('%d %b %Y') if item.created_at else '—' }}</div>
+                            {% if item.is_sold and item.sold_at %}
+                            <div style="font-size:0.68rem;color:#dc2626;font-weight:600;margin-top:2px;">Sold: {{ item.sold_at.strftime('%d %b %Y') }}</div>
+                            {% endif %}
                         </div>
 
                         <!-- Actions -->
                         <div class="actions">
+                            <form action="/admin/catalog/{{ item.id }}/toggle-sold" method="POST" style="width:100%;">
+                                {% if item.is_sold %}
+                                <button type="submit" class="btn-sold-toggle mark-available">
+                                    <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Mark as available
+                                </button>
+                                {% else %}
+                                <button type="submit" class="btn-sold-toggle mark-sold">
+                                    <i data-lucide="badge-check" class="w-3 h-3"></i> Mark as sold
+                                </button>
+                                {% endif %}
+                            </form>
                             <button type="button" onclick="openAddImages({{ item.id }}, '{{ item.name|replace("'","\\'")|e }}')"
                                     style="background:#eff6ff;color:#1e3a8a;border:1px solid #dbeafe;padding:6px 12px;border-radius:6px;font-size:0.74rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;">
                                 <i data-lucide="image-plus" class="w-3 h-3"></i> Add Images
