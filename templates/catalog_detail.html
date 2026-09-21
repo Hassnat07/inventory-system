@@ -186,6 +186,26 @@
         box-shadow: 0 4px 14px rgba(30,58,138,0.3);
         border: none; cursor: pointer;
     }
+    /* ── Sold state ── */
+    .sold-ribbon {
+        position: absolute; top: 26px; left: -46px; z-index: 5;
+        width: 180px; transform: rotate(-45deg);
+        background: #dc2626; color: #fff; text-align: center;
+        font-size: 0.8rem; font-weight: 800; letter-spacing: 0.22em;
+        padding: 6px 0;
+        box-shadow: 0 3px 12px rgba(220,38,38,0.35);
+        pointer-events: none;
+    }
+    .sold-pill {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 4px 12px; border-radius: 100px; margin-left: 6px;
+        font-size: 0.72rem; font-weight: 700;
+        background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;
+        vertical-align: top;
+    }
+    .enquire-box.sold { background: #f8fafc; border-color: #e2e8f0; }
+    .enquire-box.sold p { color: #475569; }
+
     .btn-enquire:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 24px rgba(30,58,138,0.4);
@@ -206,6 +226,7 @@
         <!-- ── Image Gallery ── -->
         <div class="gallery-wrap">
             <div class="gallery-slider" id="slider">
+                {% if item.is_sold %}<div class="sold-ribbon">SOLD</div>{% endif %}
                 <div class="gallery-track" id="track">
                     {% for img in all_images %}
                     <div class="gallery-slide">
@@ -249,6 +270,12 @@
         <!-- ── Info Panel ── -->
         <div class="info-panel">
             <div class="cat-badge">{{ item.category }}</div>
+            {% if item.is_sold %}
+            <span class="sold-pill">
+                <i data-lucide="check-circle" style="width:13px;height:13px;"></i>
+                Sold
+            </span>
+            {% endif %}
             <h1 class="prod-name">{{ item.name }}</h1>
             {% if item.model_no %}
             <div class="prod-model">Model No: {{ item.model_no }}</div>
@@ -257,6 +284,16 @@
 
             <p class="prod-desc">{{ item.description or 'Contact our sales team for full product specifications and pricing.' }}</p>
 
+            {% if item.is_sold %}
+            <div class="enquire-box sold">
+                <strong>This unit has been sold</strong>
+                <p>We regularly source similar equipment. Tell us what you need and we'll let you know when a matching unit is available.</p>
+                <a href="/contact" class="btn-enquire" target="_self">
+                    <i data-lucide="mail" style="width:16px;height:16px;"></i>
+                    Ask About Similar Units
+                </a>
+            </div>
+            {% else %}
             <div class="enquire-box">
                 <strong>Interested in this product?</strong>
                 <p>Our sales team is ready to provide pricing, availability, and a demonstration.</p>
@@ -265,6 +302,7 @@
                     Enquire Now
                 </a>
             </div>
+            {% endif %}
         </div>
 
     </div>
