@@ -36,12 +36,14 @@ def _img_url(filename):
     return url_for("static", filename=f"uploads/catalog/{filename}")
 
 
-# ── Public catalog list ─────────────────────────────────────────────────────
-@catalog_bp.route("/catalog")
-def catalog():
-    con = get_db()
-    cur = con.cursor()
-    # Add sort_order column if missing (safe migration)
+_schema_ready = False
+
+
+def _ensure_schema(con, cur):
+    """Add missing catalog columns once per worker (safe to run repeatedly)."""
+    global _schema_ready
+    if _schema_ready:
+        return
     cur.execute("""
         DO $$ BEGIN
             IF NOT EXISTS (
@@ -53,12 +55,24 @@ def catalog():
             END IF;
         END $$
     """)
+    cur.execute("ALTER TABLE catalog_items ADD COLUMN IF NOT EXISTS is_sold BOOLEAN NOT NULL DEFAULT FALSE")
+    cur.execute("ALTER TABLE catalog_items ADD COLUMN IF NOT EXISTS sold_at TIMESTAMP")
     con.commit()
+    _schema_ready = True
 
+
+# ── Public catalog list ─────────────────────────────────────────────────────
+@catalog_bp.route("/catalog")
+def catalog():
+    con = get_db()
+    cur = con.cursor()
+    _ensure_schema(con, cur)
+
+    # Sold items stay visible but move to the end of their category
     cur.execute("""
-        SELECT id, name, category, description, model_no, image_filename
+        SELECT id, name, category, description, model_no, image_filename, is_sold
         FROM catalog_items
-        ORDER BY category, sort_order ASC, id ASC
+        ORDER BY category, is_sold ASC, sort_order ASC, id ASC
     """)
     rows = cur.fetchall()
     cur.close()
@@ -70,6 +84,7 @@ def catalog():
         grouped.setdefault(cat, []).append({
             "id": row[0], "name": row[1], "category": row[2],
             "description": row[3], "model_no": row[4], "image_filename": row[5],
+            "is_sold": bool(row[6]),
         })
 
     cat_filter = request.args.get("cat", "").strip()
@@ -84,8 +99,9 @@ def catalog():
 def catalog_detail(item_id):
     con = get_db()
     cur = con.cursor()
+    _ensure_schema(con, cur)
     cur.execute("""
-        SELECT id, name, category, description, model_no, image_filename
+        SELECT id, name, category, description, model_no, image_filename, is_sold
         FROM catalog_items WHERE id = %s
     """, (item_id,))
     row = cur.fetchone()
@@ -96,6 +112,7 @@ def catalog_detail(item_id):
     item = {
         "id": row[0], "name": row[1], "category": row[2],
         "description": row[3], "model_no": row[4], "image_filename": row[5],
+        "is_sold": bool(row[6]),
     }
     cur.execute("""
         SELECT image_filename FROM catalog_item_images
@@ -120,23 +137,11 @@ def catalog_admin():
 
     con = get_db()
     cur = con.cursor()
-
-    # Ensure sort_order column exists
-    cur.execute("""
-        DO $$ BEGIN
-            IF NOT EXISTS (
-                SELECT 1 FROM information_schema.columns
-                WHERE table_name='catalog_items' AND column_name='sort_order'
-            ) THEN
-                ALTER TABLE catalog_items ADD COLUMN sort_order INTEGER DEFAULT 0;
-                UPDATE catalog_items SET sort_order = id;
-            END IF;
-        END $$
-    """)
-    con.commit()
+    _ensure_schema(con, cur)
 
     cur.execute("""
-        SELECT id, name, category, description, model_no, image_filename, created_at
+        SELECT id, name, category, description, model_no, image_filename, created_at,
+               is_sold, sold_at
         FROM catalog_items ORDER BY category, sort_order ASC, id ASC
     """)
     items_raw = cur.fetchall()
@@ -150,6 +155,7 @@ def catalog_admin():
             "id": r[0], "name": r[1], "category": r[2],
             "description": r[3], "model_no": r[4],
             "image_filename": r[5], "created_at": r[6],
+            "is_sold": bool(r[7]), "sold_at": r[8],
             "extra_image_count": img_counts.get(r[0], 0),
         }
         for r in items_raw
@@ -265,6 +271,32 @@ def catalog_add_images(item_id):
     cur.close(); con.close()
     flash(f"{len(valid_files)} image(s) added.", "success")
     return redirect(url_for("catalog.catalog_admin"))
+
+
+# ── Admin: mark product as sold / available ─────────────────────────────────
+@catalog_bp.route("/admin/catalog/<int:item_id>/toggle-sold", methods=["POST"])
+def catalog_toggle_sold(item_id):
+    if not _admin_required():
+        return redirect(url_for("auth.login"))
+
+    con = get_db()
+    cur = con.cursor()
+    _ensure_schema(con, cur)
+    cur.execute("""
+        UPDATE catalog_items
+        SET is_sold = NOT is_sold,
+            sold_at = CASE WHEN is_sold THEN NULL ELSE CURRENT_TIMESTAMP END
+        WHERE id = %s
+        RETURNING name, is_sold
+    """, (item_id,))
+    row = cur.fetchone()
+    con.commit()
+    cur.close(); con.close()
+
+    if row:
+        name, is_sold = row
+        flash(f'"{name}" marked as {"sold" if is_sold else "available"}.', "success")
+    return redirect(url_for("catalog.catalog_admin") + f"#item-{item_id}")
 
 
 # ── Admin: delete a single image ────────────────────────────────────────────
