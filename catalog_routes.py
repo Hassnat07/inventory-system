@@ -6,7 +6,7 @@ from database import get_db
 
 catalog_bp = Blueprint("catalog", __name__)
 
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "gif"}
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "jfif", "jpe", "pjpeg", "pjp", "webp", "gif"}
 
 CATEGORIES = [
     "Intraocular Lenses",
