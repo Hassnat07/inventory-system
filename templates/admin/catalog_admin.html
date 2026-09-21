@@ -27,6 +27,28 @@
         #drop-zone.dragover { border-color:#3b82f6; background:#eff6ff; }
         #drop-zone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
 
+        /* ── Upload previews: drag to set image order ── */
+        .preview-thumb {
+            position:relative; width:72px; height:72px; flex-shrink:0;
+            border-radius:8px; overflow:hidden; background:#f8fafc;
+            border:1px solid #e2e8f0; cursor:grab; user-select:none;
+        }
+        .preview-thumb:active { cursor:grabbing; }
+        .preview-thumb:first-child { border:2px solid #1e3a8a; }
+        .preview-thumb img { width:100%; height:100%; object-fit:cover; display:block; pointer-events:none; }
+        .preview-num {
+            position:absolute; top:3px; left:3px;
+            min-width:17px; height:17px; padding:0 5px; border-radius:100px;
+            background:rgba(15,23,42,0.72); color:#fff;
+            font-size:0.62rem; font-weight:700; line-height:17px; text-align:center;
+        }
+        .preview-cover {
+            position:absolute; left:0; right:0; bottom:0;
+            background:#1e3a8a; color:#fff; text-align:center;
+            font-size:0.58rem; font-weight:700; letter-spacing:0.04em; padding:1px 0;
+        }
+        .preview-thumb.preview-ghost { opacity:0.35; border:2px dashed #3b82f6; }
+
         /* ── Sort grid ── */
         .sort-group { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:16px; }
 
@@ -373,28 +395,72 @@
 <script>
 lucide.createIcons();
 
-// ── Image preview for add form ──
+// ── Image preview for add form (drag thumbnails to set image order) ──
 var input = document.getElementById('image-input');
 var dropZone = document.getElementById('drop-zone');
 var previewWrap = document.getElementById('preview-wrap');
 var previewGrid = document.getElementById('preview-grid');
 var previewName = document.getElementById('preview-name');
+var selectedFiles = [];
+
+// Write the current order back into the file input, so the form uploads in this order
+function syncInputFiles() {
+    var dt = new DataTransfer();
+    selectedFiles.forEach(function(f) { dt.items.add(f); });
+    input.files = dt.files;
+}
+
+function refreshPreviewBadges() {
+    Array.from(previewGrid.children).forEach(function(thumb, i) {
+        thumb.querySelector('.preview-num').textContent = i + 1;
+        var cover = thumb.querySelector('.preview-cover');
+        if (i === 0 && !cover) {
+            cover = document.createElement('span');
+            cover.className = 'preview-cover';
+            cover.textContent = 'Cover';
+            thumb.appendChild(cover);
+        } else if (i !== 0 && cover) {
+            cover.remove();
+        }
+    });
+}
 
 function showPreviews(files) {
+    selectedFiles = Array.from(files);
+    Array.from(previewGrid.querySelectorAll('img')).forEach(function(img) { URL.revokeObjectURL(img.src); });
     previewGrid.innerHTML = '';
-    Array.from(files).forEach(function(file) {
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            var img = document.createElement('img');
-            img.src = e.target.result;
-            img.style.cssText = 'width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;';
-            previewGrid.appendChild(img);
-        };
-        reader.readAsDataURL(file);
+    selectedFiles.forEach(function(file) {
+        var thumb = document.createElement('div');
+        thumb.className = 'preview-thumb';
+        thumb._file = file;
+        var img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.alt = '';
+        var num = document.createElement('span');
+        num.className = 'preview-num';
+        thumb.appendChild(img);
+        thumb.appendChild(num);
+        previewGrid.appendChild(thumb);
     });
-    previewName.textContent = files.length + ' image' + (files.length > 1 ? 's' : '') + ' selected';
-    previewWrap.style.display = 'block';
+    refreshPreviewBadges();
+    var n = selectedFiles.length;
+    previewName.textContent = n + ' image' + (n > 1 ? 's' : '') + ' selected.' +
+        (n > 1 ? ' Drag to change the order. The first image is the cover photo.' : '');
+    previewWrap.style.display = n ? 'block' : 'none';
 }
+
+Sortable.create(previewGrid, {
+    animation: 150,
+    ghostClass: 'preview-ghost',
+    delay: 150,
+    delayOnTouchOnly: true,
+    onEnd: function() {
+        selectedFiles = Array.from(previewGrid.children).map(function(t) { return t._file; });
+        syncInputFiles();
+        refreshPreviewBadges();
+    }
+});
+
 input.addEventListener('change', function() { if (input.files.length) showPreviews(input.files); });
 dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.classList.add('dragover'); });
 dropZone.addEventListener('dragleave', function() { dropZone.classList.remove('dragover'); });
